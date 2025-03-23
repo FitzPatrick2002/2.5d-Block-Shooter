@@ -55,4 +55,6 @@ public:
 
 	void render(sf::RenderWindow* w);
 
+	MapBox getTile(int i, int j);
+
 };

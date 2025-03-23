@@ -137,3 +137,7 @@ void MapBox::render(sf::RenderWindow* w) {
 	for(auto& e : this->walls)
 		e.render(w);
 }
+
+sf::Vector3f MapBox::getDimensions() {
+	return this->dims;
+}

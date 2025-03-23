@@ -31,6 +31,8 @@ Player::Player() : Entity() {
 	this->playerModel.init(this->worldPos, dims);
 	this->playerModel.setOutlineColor(sf::Color::Cyan);
 	this->playerModel.setWallsColor(sf::Color::Black);
+
+	this->gameMap = nullptr;
 }
 
 Player::~Player() {
@@ -71,9 +73,31 @@ void Player::updateHitbox() {
 	this->hitbox.setPosition(this->sprite.getPosition());
 }
 
+// 1. Check if after moving we will be still on the same tile
+// 2. If not check if the hieght difference wouldn't be too big
+// 3. If it won't set the flag that movement can occur and 
+// 4. Move the player and update his z-world position
+
 void Player::movePlayer(sf::Time deltaTime) {	
 
-	this->worldPos = worldPos + deltaTime.asSeconds() * velMag * velVersor;
+	sf::Vector3f anticipatedFarPosition = worldPos + (deltaTime.asSeconds() + 0.1f) * velMag * velVersor;
+	sf::Vector2i current_xy_pos = sf::Vector2i((int)(worldPos.x), (int)(worldPos.y));
+	sf::Vector2i anticipated_xy_pos = sf::Vector2i((int)(anticipatedFarPosition.x), (int)(anticipatedFarPosition.y));
+
+	bool updatePos = true;
+	if (anticipated_xy_pos != current_xy_pos) {
+		float current_z = this->worldPos.z;
+		float future_z = this->gameMap->getTile(anticipated_xy_pos.y, anticipated_xy_pos.x).getDimensions().z;
+
+		if(future_z > current_z + 0.3f)
+			updatePos = false;
+
+	}
+	if (updatePos == true) {
+		this->worldPos = worldPos + deltaTime.asSeconds() * velMag * velVersor;
+		this->worldPos.z = this->gameMap->getTile(current_xy_pos.y, current_xy_pos.x).getDimensions().z;
+		std::cout << "Player z = " << this->worldPos.z << "\n";
+	}
 }
 
 void Player::update(sf::Time deltaTime) {
@@ -114,6 +138,10 @@ void Player::setTexture(sf::Texture& texture) {
 
 	this->sprite.setScale(sf::Vector2f(0.8f, 0.8f));
 	
+}
+
+void Player::setGameMap(GameMap* map) {
+	this->gameMap = map;
 }
 
 void Player::setAnimationData(sf::Texture* texture, std::vector<int>& imCount, float tbf) {

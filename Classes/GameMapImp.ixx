@@ -68,7 +68,7 @@ void GameMap::generateMap() {
 
 	std::random_device dev;
 	std::mt19937 rng(dev());
-	std::uniform_int_distribution<std::mt19937::result_type> dist(0, 2);
+	std::uniform_int_distribution<std::mt19937::result_type> dist(1, 10);
 	//std::uniform_int_distribution<std::mt19937::result_type> hei(-1, 1);
 
 	sf::Vector3f boxDims(1.0f, 1.0f, 1.0f);
@@ -78,8 +78,9 @@ void GameMap::generateMap() {
 			pos.x = float(j) * boxDims.x;
 			pos.y = float(i) * boxDims.y;
 			//pos.z = (float(dist(rng)) + 0.5f) * boxDims.z * (dist(rng) == 1 ? (-1.0f) : 1.0f);
-			pos.z = (0.1f) * boxDims.z * (dist(rng) == 1 ? (-1.0f) : 1.0f);
-			//pos.z = 0.0f;
+			//pos.z = (0.1f) * boxDims.z * (dist(rng) == 1 ? (-1.0f) : 1.0f);
+			pos.z = 0.0f;
+			boxDims.z = (0.1f) * (float)(dist(rng));
 			this->ground[i * height + j].init(pos, boxDims);
 			this->ground[i * height + j].setOutlineColor(sf::Color(0, 255, 0, 255));
 			this->ground[i * height + j].setWallsColor(sf::Color(0, 0, 0, 255));
@@ -230,4 +231,8 @@ void GameMap::render(sf::RenderWindow* w) {
 
 	for (auto& e : this->groundForDisplay)
 		e.render(w);
+}
+
+MapBox GameMap::getTile(int i, int j) {
+	return this->ground[i * this->width + j];
 }

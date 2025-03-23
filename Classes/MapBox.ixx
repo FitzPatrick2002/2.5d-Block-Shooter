@@ -36,4 +36,6 @@ public:
 
 	void render(sf::RenderWindow* w);
 
+	sf::Vector3f getDimensions();
+
 }; 

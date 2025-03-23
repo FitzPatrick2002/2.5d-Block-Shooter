@@ -13,27 +13,13 @@ Combat::Combat(sf::RenderWindow* win) : GameState(win) {
 
 	this->initialiseMap();
 	this->initPlayerView();
+	this->player.setGameMap(&this->map);
 
-	//this->startThreads();
 }
 
 Combat::~Combat() {
-	this->finishThreads = true;
 
 	this->window->getDefaultView();
-	//this->playerInputThread->join();
-}
-
-void Combat::startThreads() {
-	this->finishThreads = false;
-
-	/*this->playerInputThread = std::make_shared<std::thread>([&]() {
-		while (not this->getFinishThreads())
-			this->handleUserInput();
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		});
-	*/
 }
 
 void Combat::initialiseMap() {
@@ -296,8 +282,4 @@ void Combat::resizeView() {
 
 	this->playerViewSize = sf::Vector2f(playerView.x * aspectRatio, playerView.x);
 
-}
-
-bool Combat::getFinishThreads() {
-	return this->finishThreads;
 }

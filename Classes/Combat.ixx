@@ -34,10 +34,6 @@ private:
 	std::unordered_set<std::list<Bullet>::iterator, HashListIterator> bulletsToRemove;
 
 	Player player;
-	
-	bool finishThreads;
-	//std::shared_ptr<std::thread> playerInputThread;
-	//std::shared_ptr<std::thread> bulletsCollisionsThread;
 
 	// Temporary testing the 3d objects
 	GameMap map;
@@ -59,8 +55,6 @@ public:
 	void updatePlayerView();
 
 	void updatePlayerFOV();
-
-	void startThreads();
 
 	void createWindow();
 
@@ -101,7 +95,5 @@ public:
 	//  ------------------------------- Setters and getters ----------------------------------
 	// They are here only so that I can access varibale sin threads.
 	// There probably is some nicer way of handling this stuff
-
-	bool getFinishThreads();
 
 };
