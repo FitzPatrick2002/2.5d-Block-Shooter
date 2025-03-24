@@ -53,18 +53,6 @@ void Bullet::updatePositions() {
 	this->bulletModel.setWorldPosition(this->worldPos);
 }
 
-// Old 2d
-void Bullet::updateHitbox() {
-
-	sf::Vector2f hitboxSize = sf::Vector2f(sprite.getTextureRect().getSize().x, sprite.getTextureRect().getSize().y);
-	this->hitbox.setSize(hitboxSize);
-	this->hitbox.setScale(sprite.getScale());
-
-	//std::cout << "roation: " << this->hitbox.getRotation() << "\n";
-
-	this->hitbox.setPosition(this->sprite.getPosition());
-}
-
 void Bullet::update(sf::Time deltaTime) {
 
 	this->moveBullet(deltaTime);
@@ -77,14 +65,4 @@ void Bullet::render(sf::RenderWindow* w) {
 	this->bulletModel.render(w);
 	//w->draw(sprite);
 	//w->draw(hitbox);
-}
-
-void Bullet::setTexture(sf::Texture& t) {
-	this->sprite.setTexture(t);
-
-	sf::Vector2f size = sf::Vector2f(sprite.getTextureRect().getSize().x, sprite.getTextureRect().getSize().y);
-	this->hitbox.setSize(size);
-
-	this->hitbox.setPosition(this->getScreenPosInPixels());
-	this->hitbox.setFillColor(sf::Color(0, 0, 255, 150));
 }

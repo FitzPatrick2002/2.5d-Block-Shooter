@@ -1,4 +1,5 @@
 import MovementManager;
+import <iostream>;
 
 MovementManager::MovementManager() {
 	this->gameMap = nullptr;

@@ -8,10 +8,7 @@ import MovementManager;
 import <chrono>;
 
 Combat::Combat(sf::RenderWindow* win) : GameState(win) {
-	
 	this->loadTextures();
-
-	this->player.setTexture(textureManager.getTexture("Darius")); // Darius
 
 	this->initialiseMap();
 	this->initPlayerView();
@@ -182,30 +179,13 @@ void Combat::checkBulletsCollisions() {
 	std::list<Bullet>::iterator itr_2 = bullets.begin();
 
 	for (itr; itr != bullets.end(); itr++) {
-		// For now just check if they are still on the map
-		sf::FloatRect bulletRect = itr->getHitbox().getGlobalBounds();
 
-		// Check top
 		if (not this->map.checkIfOnMap(itr->getWorld_XY())) {
 			this->addBulletForRemoval(itr);
 		}
 
 		if (not this->map.checkIfTileWalkable(itr->getWorld_XY()))
 			this->addBulletForRemoval(itr);
-
-		// Check Collisions with other bullets
-		std::list<Bullet>::iterator itr_2 = bullets.begin();
-		for (itr_2; itr_2 != bullets.end(); itr_2++) {
-
-			if (itr != itr_2) {
-				if (itr->checkIfCollidesWith(*itr_2, window)) {
-					this->addBulletForRemoval(itr);
-					this->addBulletForRemoval(itr_2);
-
-
-				}
-			}
-		}
 
 	}
 }

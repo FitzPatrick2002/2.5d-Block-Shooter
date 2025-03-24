@@ -25,14 +25,8 @@ public:
 
 	void updatePositions();
 
-	void updateHitbox();
-
 	void update(sf::Time deltaTime);
 
 	void render(sf::RenderWindow* w);
-
-	void setTexture(sf::Texture& t);
-
-
 
 };

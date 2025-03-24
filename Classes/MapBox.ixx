@@ -24,18 +24,22 @@ public:
 	MapBox();
 	~MapBox();
 
+	void init(sf::Vector3f wPos, sf::Vector3f d = sf::Vector3f(1.0f, 1.0f, 1.0f));
+
+	// Getters and setters
+
 	void setWorldPosition(sf::Vector3f newPos);
 
 	sf::Vector3f getWorldPos() const;
+
+	sf::Vector3f getDimensions();
 
 	void setOutlineColor(sf::Color color);
 
 	void setWallsColor(sf::Color color, int i = -1);
 
-	void init(sf::Vector3f wPos, sf::Vector3f d = sf::Vector3f(1.0f, 1.0f, 1.0f));
+	// Other
 
 	void render(sf::RenderWindow* w);
-
-	sf::Vector3f getDimensions();
 
 }; 
