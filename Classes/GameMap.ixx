@@ -1,6 +1,5 @@
 export module GameMap;
 
-import MapTile;
 import Object_3d;
 import MapBox;
 
@@ -45,15 +44,31 @@ public:
 
 	void init(int w, int h, TextureManager* tM);
 
+	// Terrain generation
+
 	void generateMap();
+
+	void generatePerlin();
 
 	void setPlayerFOV(sf::Vector3f playerPos, sf::Vector2f absoluteMousePosition);
 
 	void iterateOverWidth(int y, int width, sf::Vector3f playerPos, sf::Vector2f mousePos);
 
+	bool checkIfOnMap(sf::Vector2f pos);
+	bool checkIfOnMap(sf::Vector2i pos);
+
+	bool checkIfTileWalkable(sf::Vector2f pos);
+	bool checkIfTileWalkable(sf::Vector2i pos);
+
 	void setRenderOrder();
 
 	void render(sf::RenderWindow* w);
+
+	// Getters and setters
+
+	int getHeight();
+
+	int getWidth();
 
 	MapBox getTile(int i, int j);
 

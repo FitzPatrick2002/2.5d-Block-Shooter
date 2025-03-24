@@ -62,6 +62,8 @@ public:
 
 	sf::Vector3f getWorldPos();
 
+	sf::Vector2f getWorld_XY();
+
 	sf::Vector2f getScreenPosInTiles();
 
     sf::Vector2f getScreenPosInPixels();

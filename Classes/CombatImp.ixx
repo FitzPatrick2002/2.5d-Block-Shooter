@@ -1,8 +1,10 @@
-export module GameImp;
+//export module GameImp;
 
 import Combat;
 import linAlg;
 import GameManager;
+import MovementManager;
+
 import <chrono>;
 
 Combat::Combat(sf::RenderWindow* win) : GameState(win) {
@@ -13,8 +15,8 @@ Combat::Combat(sf::RenderWindow* win) : GameState(win) {
 
 	this->initialiseMap();
 	this->initPlayerView();
-	this->player.setGameMap(&this->map);
 
+	MovementManager::getManager().setManagerData(&this->map);
 }
 
 Combat::~Combat() {
@@ -184,17 +186,12 @@ void Combat::checkBulletsCollisions() {
 		sf::FloatRect bulletRect = itr->getHitbox().getGlobalBounds();
 
 		// Check top
-		if (bulletRect.top < 0.0f) {
-			//b.setPos(sf::Vector2f(bulletRect.getPosition().x, 0.0f));
+		if (not this->map.checkIfOnMap(itr->getWorld_XY())) {
 			this->addBulletForRemoval(itr);
 		}
 
-		//Check bottom
-
-
-		//Check left
-
-		//Check right
+		if (not this->map.checkIfTileWalkable(itr->getWorld_XY()))
+			this->addBulletForRemoval(itr);
 
 		// Check Collisions with other bullets
 		std::list<Bullet>::iterator itr_2 = bullets.begin();
@@ -236,6 +233,9 @@ void Combat::update(sf::Time deltaTime) {
 	
 	//std::cout << this->player.getWorldPos().x<< ", "<<this->player.getWorldPos().y << "\n";
 	this->handleUserInput();
+
+	MovementManager::getManager().movePlayer(this->player, deltaTime);
+
 	this->player.update(deltaTime);
 	this->player.updateSightAngle(this->getMousePos());
 	this->updatePlayerFOV();

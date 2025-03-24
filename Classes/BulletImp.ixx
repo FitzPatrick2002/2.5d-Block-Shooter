@@ -50,7 +50,6 @@ void Bullet::moveBullet(sf::Time& deltaTime) {
 }
 
 void Bullet::updatePositions() {
-	//this->sprite.setPosition(this->getScreenPosInPixels());
 	this->bulletModel.setWorldPosition(this->worldPos);
 }
 
@@ -70,7 +69,6 @@ void Bullet::update(sf::Time deltaTime) {
 
 	this->moveBullet(deltaTime);
 
-	//this->updateHitbox();
 	this->updatePositions();
 }
 

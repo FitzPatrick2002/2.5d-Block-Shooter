@@ -6,7 +6,6 @@ import linAlg;
 import Viewfinder;
 
 import MapBox;
-import GameMap;
 
 // TO DO:
 // Read animation data from .txt file (amount of animations and their lengths in a strip)
@@ -25,9 +24,6 @@ private:
 
 	// Temporary 3d appearence
 	MapBox playerModel;
-
-	// The game map :/	
-	GameMap* gameMap;
 
 public:
 
@@ -60,8 +56,6 @@ public:
 
 	// Texture is a single file with all possible animations
 	void setTexture(sf::Texture& texture);
-
-	void setGameMap(GameMap* map);
 
 	void setAnimationData(sf::Texture* texture, std::vector<int>& imCount, float tbf);
 

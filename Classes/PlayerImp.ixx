@@ -32,7 +32,6 @@ Player::Player() : Entity() {
 	this->playerModel.setOutlineColor(sf::Color::Cyan);
 	this->playerModel.setWallsColor(sf::Color::Black);
 
-	this->gameMap = nullptr;
 }
 
 Player::~Player() {
@@ -80,7 +79,7 @@ void Player::updateHitbox() {
 
 void Player::movePlayer(sf::Time deltaTime) {	
 
-	sf::Vector3f anticipatedFarPosition = worldPos + (deltaTime.asSeconds() + 0.1f) * velMag * velVersor;
+	/*::Vector3f anticipatedFarPosition = worldPos + (deltaTime.asSeconds() + 0.1f) * velMag * velVersor;
 	sf::Vector2i current_xy_pos = sf::Vector2i((int)(worldPos.x), (int)(worldPos.y));
 	sf::Vector2i anticipated_xy_pos = sf::Vector2i((int)(anticipatedFarPosition.x), (int)(anticipatedFarPosition.y));
 
@@ -97,7 +96,10 @@ void Player::movePlayer(sf::Time deltaTime) {
 		this->worldPos = worldPos + deltaTime.asSeconds() * velMag * velVersor;
 		this->worldPos.z = this->gameMap->getTile(current_xy_pos.y, current_xy_pos.x).getDimensions().z;
 		std::cout << "Player z = " << this->worldPos.z << "\n";
-	}
+	}*/
+
+	//this->worldPos = worldPos + deltaTime.asSeconds() * velMag * velVersor;
+	
 }
 
 void Player::update(sf::Time deltaTime) {
@@ -138,10 +140,6 @@ void Player::setTexture(sf::Texture& texture) {
 
 	this->sprite.setScale(sf::Vector2f(0.8f, 0.8f));
 	
-}
-
-void Player::setGameMap(GameMap* map) {
-	this->gameMap = map;
 }
 
 void Player::setAnimationData(sf::Texture* texture, std::vector<int>& imCount, float tbf) {

@@ -1,6 +1,8 @@
 export module linAlg;
 
 import <SFML/Graphics.hpp>;
+import <ranges>;
+import <numeric>;
 
 export class CombatMapData {
 private:
@@ -123,4 +125,15 @@ export sf::Vector2f convertPixelsToTiles(sf::Vector2f pixels) {
 	sf::Vector2f scrTileSize = CombatMapData::getCombatMapData().getScrTileSize();
 
 	return sf::Vector2f(pixels.x / scrTileSize.x, pixels.y / scrTileSize.y);
+}
+
+export
+template<class T>
+float mean(std::vector<T>& elems) {
+	T sum = T();
+
+	for (auto& e : elems)
+		sum += e;
+
+	return (sum / elems.size());
 }

@@ -13,6 +13,7 @@ import TextureManager;
 import Bullet;
 
 import GameMap;
+import MovementManager;
 
 struct HashListIterator {
 	template<class T>
