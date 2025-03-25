@@ -72,4 +72,8 @@ public:
 
 	MapBox getTile(int i, int j);
 
+	// Saving to file
+
+	void loadFromFile(std::string file_name);
+
 };

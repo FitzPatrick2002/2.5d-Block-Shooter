@@ -10,6 +10,14 @@ import <thread>;
 import <mutex>;
 
 import <chrono>;
+import<filesystem>;
+import <regex>;
+import <fstream>;
+import <string>;
+import <sstream>;
+import <unordered_map>;
+
+namespace fs = std::filesystem;
 
 GameMap::GameMap() {
 	mapPool.start();
@@ -437,4 +445,112 @@ MapBox GameMap::getTile(int i, int j) {
 		std::cerr << "Map has dimesions: " << this->height << " " << this->width << "\n";;
 
 	return this->ground[i * this->width + j];
+}
+
+/*
+sf::Vector3f boxDims(1.0f, 1.0f, 1.0f);
+	sf::Vector3f pos; // Pos measured in tiles
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			pos.x = float(j) * boxDims.x;
+			pos.y = float(i) * boxDims.y;
+			//pos.z = (float(dist(rng)) + 0.5f) * boxDims.z * (dist(rng) == 1 ? (-1.0f) : 1.0f);
+			//pos.z = (0.1f) * boxDims.z * (dist(rng) == 1 ? (-1.0f) : 1.0f);
+			pos.z = 0.0f;
+			boxDims.z = 0.0f;//0.3f) * (float)(dist(rng));
+			this->ground[i * height + j].init(pos, boxDims);
+			this->ground[i * height + j].setOutlineColor(sf::Color(0, 255, 0, 255));
+			this->ground[i * height + j].setWallsColor(sf::Color(0, 0, 0, 255));
+			this->ground[i * height + j].setWallsColor(sf::Color(255, 0, 0, 255), 0);
+			this->ground[i * height + j].setWallsColor(sf::Color(0, 0, 255, 255), 1);
+			this->ground[i * height + j].setWallsColor(sf::Color(125, 125, 0, 255), 2);
+		}
+	}
+*/
+
+void GameMap::loadFromFile(std::string file_name) {
+	std::ifstream map_file("Game\\Maps\\" + file_name + ".txt");
+
+	auto read_width_height = [&, this]() {
+		std::regex params_regex("([A-Za-z]+):\\s*(\\d+)");
+		std::smatch m;
+
+		std::map <std::string, int> params;
+
+		// 1. Read the first lines -> should contain width and height
+		// 2. Read the map matrix row by row
+		//		2.1. After reading a row initilise data inside the map already
+
+		std::string line;
+		while (std::getline(map_file, line)) {
+			if (std::regex_search(line, m, params_regex)) {
+				params[m[1]] = std::atoi(m[2].str().c_str());
+			}
+
+			if (params["width"] and params["height"])
+				break;
+		}
+
+		this->width = params["width"];
+		this->height = params["height"];
+
+		if (height <= 0 or width <= 0) {
+			std::cerr << "Can't find dimensions of the map\n";
+			return;
+		}
+		};
+
+	auto create_tile = [&, this](int x, int y, float val) {
+		sf::Vector3f pos(static_cast<float>(x), static_cast<float>(y), 0);
+		sf::Vector3f dims(1.0f, 1.0f, val);
+
+		this->ground[y * width + x].init(pos, dims);
+		this->ground[y * width + x].setOutlineColor(sf::Color(0, 255, 0, 255));
+		this->ground[y * height + x].setWallsColor(sf::Color(0, 0, 0, 255));
+		this->ground[y * height + x].setWallsColor(sf::Color(255, 0, 0, 255), 0);
+		this->ground[y * height + x].setWallsColor(sf::Color(0, 0, 255, 255), 1);
+		this->ground[y * height + x].setWallsColor(sf::Color(125, 125, 0, 255), 2);
+
+		};
+
+	if (map_file.is_open()) {
+
+		read_width_height();
+
+		// Read the map matrix row by row and create 
+		this->ground.clear();
+		this->ground.resize(width * height);
+
+		std::regex map_regex("\\s*(-?\\d+\\.?\\d*)\\s*");
+
+		std::string line;
+		int y = 0, x = 0;
+		bool matched = false;
+		while (std::getline(map_file, line)) {
+			auto heights_begin = std::sregex_iterator(line.begin(), line.end(), map_regex);
+			auto heights_end = std::sregex_iterator();
+
+			matched = false;
+			x = 0;
+			for (std::regex_iterator i = heights_begin; i != heights_end; i++) {
+				matched = true;
+				std::smatch m = *i;
+
+				float h = std::atof(m[1].str().c_str());
+				create_tile(x, y, h);
+
+				x++;
+			}
+			if(matched)
+				y++;
+
+			std::cout << line << "\n";
+		}
+
+		map_file.close();
+	}
+	else {
+		std::cerr << "Cannot open the file for the map\n";
+	}
+
 }

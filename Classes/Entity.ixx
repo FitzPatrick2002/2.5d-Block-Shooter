@@ -23,9 +23,9 @@ public:
 
 	~Entity();
 
-	virtual void update(sf::Time deltaTime) = 0;
+	void update(sf::Time deltaTime);
 
-	virtual void render(sf::RenderWindow* w) = 0;
+	void render(sf::RenderWindow* w);
 
 	// Mechanics
 

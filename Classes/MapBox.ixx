@@ -3,10 +3,11 @@ export module MapBox;
 import <vector>;
 import <SFML/Graphics.hpp>;
 import Object_3d;
+import Entity;
 
 // MapBox is the basic construction block of the map. 
 
-export class MapBox {
+export class MapBox : public Entity {
 private:
 
 	std::vector<Object_3d> outline;

@@ -8,6 +8,7 @@ import <list>;
 import <random>;
 import <unordered_set>;
 
+import Entity;
 import Player;
 import TextureManager;
 import Bullet;
@@ -42,6 +43,8 @@ private:
 	sf::Vector2f playerViewSize;
 	sf::View playerView;
 	float playerViewScrollVal;
+
+	
 
 public:
 

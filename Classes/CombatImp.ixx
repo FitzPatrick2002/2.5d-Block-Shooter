@@ -23,7 +23,9 @@ Combat::~Combat() {
 
 void Combat::initialiseMap() {
 
-	this->map.init(50, 50, &this->textureManager);
+	this->map.loadFromFile("random_walls");
+
+	//this->map.init(50, 50, &this->textureManager);
 
 }
 
@@ -150,9 +152,6 @@ void Combat::handleEvents() {
 		case sf::Event::MouseWheelScrolled:
 
 			this->playerViewScrollVal -= float(this->stateEvent.mouseWheelScroll.delta) / 10.0f;
-			//this->playerViewSize = this->playerViewScrollVal * this->playerViewSize;
-
-			//std::cout << "Scrolled by: " << this->playerViewScrollVal << "\n";
 			break;
 		case sf::Event::KeyPressed:
 			if (this->stateEvent.key.code == sf::Keyboard::M) {
@@ -186,7 +185,6 @@ void Combat::checkBulletsCollisions() {
 
 		if (not this->map.checkIfTileWalkable(itr->getWorld_XY()))
 			this->addBulletForRemoval(itr);
-
 	}
 }
 
@@ -238,7 +236,6 @@ void Combat::update(sf::Time deltaTime) {
 
 // Here we only draw things onto the
 void Combat::render() {
-
 	this->window->clear();
 
 	this->map.render(this->window);

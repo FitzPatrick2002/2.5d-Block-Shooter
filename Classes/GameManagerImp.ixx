@@ -1,6 +1,7 @@
 import GameManager;
 import Combat;
 import MainMenu;
+import MapsMenuList;
 
 import <iostream>;
 
@@ -53,6 +54,8 @@ void GameManager::createNewState(GameStateEnum st, bool destackCurrent = true) {
 
 		break;
 	case GameStateEnum::MapChoosing:
+		temp = std::make_shared<MapsMenuList>(this->mainWindow);
+		this->savedStates.push(temp);
 
 		break;
 	case GameStateEnum::Credits:

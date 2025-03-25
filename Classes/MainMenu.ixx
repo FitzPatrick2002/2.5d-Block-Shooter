@@ -1,7 +1,13 @@
 export module MainMenu;
 
+import <SFML/Graphics.hpp>;
+
+import MapsMenuList;
 import GameState;
+import MenuTile;
+
 import <vector>;
+
 
 // Switch case for checking which tile has been clicked
 // External function (like in a specific class for whcih this menu window would be created)
@@ -11,20 +17,29 @@ import <vector>;
 export class MainMenu : public GameState {
 private:
 	// sf::renderWindow* window; // From GameState class
+	std::vector<MenuTile> options;
 
-	sf::RectangleShape testRect;
-
-	std::vector<sf::RectangleShape> options;
+	sf::View menuView;
+	sf::Font tiles_font;
 
 public:
 
 	MainMenu(sf::RenderWindow* w);
 	~MainMenu();
 
+	void resizeView();
+
+	void loadFont(std::string file_name);
+
 	void prepareMenuOptions();
 
 	void handleUserInput();
 
+	void handleMenuInput();
+
+	sf::Vector2f getMousePosition();
+
 	virtual void update(sf::Time deltaTime); // From polymorphism
+
 	void render();
 };

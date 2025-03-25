@@ -1,26 +1,53 @@
-import MainMenu;
+import MapsMenuList;
+import MenuTile;
+import <iostream>;
 import GameManager;
 
-import linAlg;
+import <filesystem>;
+import <regex>;
+namespace fs = std::filesystem;
 
-import <iostream>;
 
-// class MenuTile
+MapsMenuList::MapsMenuList(sf::RenderWindow* win = nullptr) : GameState(win){
 
-// class MainMenu
+	this->loadFont("Game\\Resources\\Fonts\\Play-Bold");
+	this->readMapsFromDirectory();
 
-MainMenu::MainMenu(sf::RenderWindow* w) : GameState(w){
 	this->prepareMenuOptions();
 
 	this->menuView.setViewport(sf::FloatRect(0.0f, 0.0f, 1.0f, 1.0f));
-	this->loadFont("Game\\Resources\\Fonts\\Play-Bold");
-}
-
-MainMenu::~MainMenu() {
 
 }
 
-void MainMenu::resizeView() {
+MapsMenuList::~MapsMenuList() {
+
+}
+
+// 1. Check if Game/Maps/ exists
+// 2. Iterate over files, if they are regular files, read their names, czeck extension.
+// 3. If it is txt, then remove it and save the name to the map names vector
+
+void MapsMenuList::readMapsFromDirectory() {
+	fs::path path_to_maps("Game\\Maps");
+
+	if (fs::exists(path_to_maps)) {
+		auto itr = fs::directory_iterator(path_to_maps);
+
+		for (fs::directory_entry e : itr) {
+			std::string name = e.path().filename().string();
+			std::string extension = e.path().extension().string();
+			
+			name.erase(name.find(extension), extension.size() - 1);
+			this->maps_names.push_back(name);
+		}
+
+	}
+	else {
+		std::cerr << "Folder Game is missing, can't read maps, load fonts, nothing\n";
+	}
+}
+
+void MapsMenuList::resizeView() {
 	sf::Vector2f window_size(static_cast<float>(window->getSize().x), static_cast<float>(window->getSize().y));
 	float window_ratio = window_size.x / window_size.y;
 
@@ -36,45 +63,41 @@ void MainMenu::resizeView() {
 	this->menuView.setCenter(1024.0f / 2.0f, 768.0f / 2.0f);
 }
 
-void MainMenu::loadFont(std::string file_name) {
+void MapsMenuList::loadFont(std::string file_name) {
 
 	if (this->tiles_font.loadFromFile(file_name + ".ttf")) {
-
+		
 	}
 	else {
 		std::cerr << "Cannot load font\n";
 	}
 }
 
-void MainMenu::prepareMenuOptions() {
+void MapsMenuList::prepareMenuOptions() {
 	this->options.resize(5);
 
-	float rectWidth = float(this->window->getSize().x) / 3.0f;
-	float rectHeight = rectWidth / 7.0f;
+	float rectWidth = 300.0f;
+	float rectHeight = 40.0f;
 
 	float spaceBetween = rectHeight * 0.8f;
-	float topCoord = (float(this->window->getSize().y) - (spaceBetween * 4.0f + rectHeight * 5.0f))/2.0f;
+	float topCoord = (float(this->window->getSize().y) - (spaceBetween * 4.0f + rectHeight * 5.0f)) / 2.0f;
 
-	std::string tiles_texts[5] = {
-		"Play",
-		"Maps",
-		"Options",
-		"Credits",
-		"Quit"
-	};
+	// This part will be differnt -> different options -> map namwes, alsp different events on clicking
+	this->options.clear();
+	this->options.resize(this->maps_names.size());
 
-	for (int i = 0;  auto & e : this->options) {
-		
+	for (int i = 0; auto & e : this->options) {
+
 		e.setSize(sf::Vector2f(rectWidth, rectHeight));
-		e.setPos(sf::Vector2f(100, topCoord + i*(rectHeight + spaceBetween)));
+		e.setPos(sf::Vector2f(100, topCoord + i * (rectHeight + spaceBetween)));
 		std::cout << topCoord + i * spaceBetween << "\n";
 
 		e.setOutlineThickness(1.0f);
 		e.setOutlineColor(sf::Color(0, 255, 0, 255));
-		
+
 		e.setFillColor(sf::Color::Black);
 
-		e.initText(this->tiles_font, tiles_texts[i]);
+		e.initText(this->tiles_font, maps_names[i]);
 
 		i++;
 	}
@@ -84,7 +107,7 @@ void MainMenu::prepareMenuOptions() {
 // In the background there will be a blurred printscreen 
 // (moving and then fluently changing to a different one)
 // of the gameplay
-void MainMenu::handleUserInput() {
+void MapsMenuList::handleUserInput() {
 
 	while (this->window->pollEvent(this->stateEvent)) {
 
@@ -104,7 +127,7 @@ void MainMenu::handleUserInput() {
 		case sf::Event::Resized:
 			//this->resizeView();
 
-				break;
+			break;
 		case sf::Event::MouseButtonPressed:
 			this->handleMenuInput();
 			return;
@@ -117,7 +140,7 @@ void MainMenu::handleUserInput() {
 
 }
 
-void MainMenu::handleMenuInput() {
+void MapsMenuList::handleMenuInput() {
 	sf::Vector2f mouse_pos = this->getMousePosition();
 
 	if (this->options[0].containsMouse(mouse_pos)) {
@@ -125,8 +148,7 @@ void MainMenu::handleMenuInput() {
 		return;
 	}
 	else if (this->options[1].containsMouse(mouse_pos)) {
-		GameManager::getManager().createNewState(GameStateEnum::MapChoosing, true);
-		return;
+
 	}
 	else if (this->options[2].containsMouse(mouse_pos)) {
 
@@ -140,14 +162,14 @@ void MainMenu::handleMenuInput() {
 
 }
 
-sf::Vector2f MainMenu::getMousePosition() {
+sf::Vector2f MapsMenuList::getMousePosition() {
 	sf::Vector2i pos = sf::Mouse::getPosition(*this->window);
 	sf::Vector2f mouse_pos = this->window->mapPixelToCoords(pos);
 
 	return mouse_pos;
 }
 
-void MainMenu::update(sf::Time deltaTime) {
+void MapsMenuList::update(sf::Time deltaTime) {
 	//this->window->setView(this->menuView);
 
 	this->render();
@@ -156,7 +178,7 @@ void MainMenu::update(sf::Time deltaTime) {
 }
 
 //void update(); // From polymorphism
-void MainMenu::render() {
+void MapsMenuList::render() {
 
 	this->window->clear();
 
