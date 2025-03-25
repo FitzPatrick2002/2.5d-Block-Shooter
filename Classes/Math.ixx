@@ -7,10 +7,12 @@ import <numeric>;
 export class CombatMapData {
 private:
 	sf::Vector2f scrTileSize;
+	std::string map_to_load;
 
 public:
 	CombatMapData() {
 		this->scrTileSize = sf::Vector2f(40.0f, 20.0f);
+		this->map_to_load = "";
 	}
 	~CombatMapData() {
 
@@ -22,12 +24,20 @@ public:
 		return combatMapData;
 	}
 
+	std::string getMapToLoad() {
+		return this->map_to_load;
+	}
+
 	sf::Vector2f getScrTileSize() {
 		return this->scrTileSize;
 	}
 
 	void setScrTileSize(sf::Vector2f newTileSize) {
 		this->scrTileSize = newTileSize;
+	}
+
+	void setMapToLoad(std::string str) {
+		this->map_to_load = str;
 	}
 
 };

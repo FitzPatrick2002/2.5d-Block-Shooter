@@ -23,7 +23,12 @@ Combat::~Combat() {
 
 void Combat::initialiseMap() {
 
-	this->map.loadFromFile("random_walls");
+	std::string map_to_load = CombatMapData::getCombatMapData().getMapToLoad();
+
+	// Make the .loadFromFIle() function of the map return boolean value
+	// So that if it fails we can jump back to the main menu
+
+	this->map.loadFromFile(map_to_load);
 
 	//this->map.init(50, 50, &this->textureManager);
 

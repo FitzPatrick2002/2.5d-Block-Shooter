@@ -36,7 +36,11 @@ void MenuTile::initText(sf::Font& f, std::string str) {
 }
 
 void MenuTile::setText(std::string str) {
+	this->text.setString(str);
+}
 
+sf::Text MenuTile::getText() {
+	return this->text;
 }
 
 void MenuTile::setPos(sf::Vector2f pos) {

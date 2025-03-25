@@ -14,6 +14,8 @@ MainMenu::MainMenu(sf::RenderWindow* w) : GameState(w){
 
 	this->menuView.setViewport(sf::FloatRect(0.0f, 0.0f, 1.0f, 1.0f));
 	this->loadFont("Game\\Resources\\Fonts\\Play-Bold");
+
+	std::cout << CombatMapData::getCombatMapData().getMapToLoad() << "\n";
 }
 
 MainMenu::~MainMenu() {
@@ -162,7 +164,7 @@ void MainMenu::render() {
 
 	for (auto& e : this->options) {
 		this->window->draw(e);
-		this->window->draw(e.text);
+		this->window->draw(e.getText());
 	}
 	this->window->display();
 }

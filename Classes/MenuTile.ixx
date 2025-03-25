@@ -3,7 +3,7 @@ export module MenuTile;
 import <SFML/Graphics.hpp>;
 
 export struct MenuTile : public sf::RectangleShape {
-public:
+private:
 
 	sf::Text text;
 
@@ -19,6 +19,8 @@ public:
 	void initText(sf::Font& f, std::string str);
 
 	void setText(std::string str);
+
+	sf::Text getText();
 
 	void setPos(sf::Vector2f pos);
 

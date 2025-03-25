@@ -3,6 +3,8 @@ import MenuTile;
 import <iostream>;
 import GameManager;
 
+import linAlg;
+
 import <filesystem>;
 import <regex>;
 namespace fs = std::filesystem;
@@ -37,7 +39,7 @@ void MapsMenuList::readMapsFromDirectory() {
 			std::string name = e.path().filename().string();
 			std::string extension = e.path().extension().string();
 			
-			name.erase(name.find(extension), extension.size() - 1);
+			name.erase(name.find(extension), extension.size());
 			this->maps_names.push_back(name);
 		}
 
@@ -101,6 +103,11 @@ void MapsMenuList::prepareMenuOptions() {
 
 		i++;
 	}
+
+	// Add additional tile for coming back to the main menu
+
+
+
 }
 
 // TO DO: sf::view so that the rectangles do not resize.
@@ -143,8 +150,20 @@ void MapsMenuList::handleUserInput() {
 void MapsMenuList::handleMenuInput() {
 	sf::Vector2f mouse_pos = this->getMousePosition();
 
+	for (int i = 0; i < this->options.size(); i++) {
+		if (this->options[i].containsMouse(mouse_pos)) {
+			CombatMapData::getCombatMapData().setMapToLoad(this->options[i].getText().getString()); // Set the map which is to be loaded
+
+			GameManager::getManager().createNewState(GameStateEnum::MainMenu, true);
+			return;
+		}
+
+	}
+
 	if (this->options[0].containsMouse(mouse_pos)) {
-		GameManager::getManager().createNewState(GameStateEnum::Combat, true);
+		//GameManager::getManager().createNewState(GameStateEnum::Combat, true);
+
+
 		return;
 	}
 	else if (this->options[1].containsMouse(mouse_pos)) {
@@ -184,7 +203,7 @@ void MapsMenuList::render() {
 
 	for (auto& e : this->options) {
 		this->window->draw(e);
-		this->window->draw(e.text);
+		this->window->draw(e.getText());
 	}
 	this->window->display();
 }
