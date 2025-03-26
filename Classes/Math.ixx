@@ -79,7 +79,16 @@ export std::ostream& operator<<(std::ostream& o, sf::Vector3f v) {
 	return o;
 }
 
+/*
 export sf::Vector2f operator*(float& f, sf::Vector2f& v) {
+	sf::Vector2f outcome;
+	outcome.x = f * v.x;
+	outcome.y = f * v.y;
+
+	return outcome;
+}*/
+
+export sf::Vector2f operator*(float f, sf::Vector2f& v) {
 	sf::Vector2f outcome;
 	outcome.x = f * v.x;
 	outcome.y = f * v.y;

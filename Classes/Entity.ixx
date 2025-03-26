@@ -59,4 +59,6 @@ public:
 
 	sf::Vector3f getVelVersor();
 
+	sf::Vector2f getVelVersor_XY();
+
 };

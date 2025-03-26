@@ -73,92 +73,6 @@ void GameMap::init(int w, int h, TextureManager* tM) {
 	this->temp.setWallsColor(sf::Color::Yellow);
 }
 
-void GameMap::generatePerlin() {
-
-	std::vector<float> perlin_heights(this->height* this->width);
-	int h = width + 1;
-	int w = width + 1;
-
-	std::vector<sf::Vector2f> gradient(h*w);
-	std::vector<sf::Vector2f> inner_vectors(h*w);
-
-	std::random_device dev;
-	std::mt19937 rng(dev());
-	std::uniform_real_distribution<float> angle_dist(0.f, 6.28f);
-	std::uniform_real_distribution<float> pts_dist(0.0f, 1.0f);
-
-	auto genRandVec = [&](std::uniform_real_distribution<float>& distr) {
-		float alpha = distr(rng);
-		return sf::Vector2f(cos(alpha), sin(alpha));
-		};
-
-	auto lerp = [&](float a, float b, float t) {
-		return a + t * (b - a);
-		};
-
-	auto fade = [](float t) {
-		return t * t * t * (t * (t * 6 - 15) + 10);
-		};
-	
-	// 1.  Generate random gradient vectors
-	for (int i = 0; i < gradient.size(); i++) {
-		gradient[i] = genRandVec(angle_dist);
-	}
-
-	//2. Generate points -> vectors to the inside of the box 
-	sf::Vector2f inner_vector;
-	std::vector<float> dotProd(4);
-	for (int i = 0; i < h - 1; i++) {
-		for (int j = 0; j < w - 1; j++) {
-			sf::Vector2f point(pts_dist(rng)*0.05f, pts_dist(rng)*0.05f);
-
-			inner_vector = point;
-			dotProd[0] = dotProduct(gradient[i * w + j], inner_vector);
-
-			float u = fade(inner_vector.x);
-			float v = fade(inner_vector.y);
-
-			inner_vector = point - sf::Vector2f(1.0f, 0.0f);;
-			dotProd[1] = dotProduct(gradient[i * w + (j + 1)], inner_vector);
-
-			inner_vector = point - sf::Vector2f(1.0f, 1.0f);;
-			dotProd[2] = dotProduct(gradient[(i  + 1) * w + (j + 1)], inner_vector);
-
-			inner_vector = point - sf::Vector2f(0.0f, 1.0f);;
-			dotProd[3] = dotProduct(gradient[(i + 1) * w + j], inner_vector);
-
-			float mix_1 = lerp(dotProd[0], dotProd[1], u);
-			float mix_2 = lerp(dotProd[3], dotProd[2], u);
-			float combined = lerp(mix_1, mix_2, v);
-
-			//float products_mean = mean<float>(dotProd);
-			combined = combined * combined * (3 - 2 * combined);
-			perlin_heights[i * width + j] = combined;
-		}
-	}
-
-	sf::Vector3f boxDims(1.0f, 1.0f, 1.0f);
-	sf::Vector3f pos; // Pos measured in tiles
-	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
-			pos.x = float(j) * boxDims.x;
-			pos.y = float(i) * boxDims.y;
-			//pos.z = (float(dist(rng)) + 0.5f) * boxDims.z * (dist(rng) == 1 ? (-1.0f) : 1.0f);
-			//pos.z = (0.1f) * boxDims.z * (dist(rng) == 1 ? (-1.0f) : 1.0f);
-			pos.z = 0.0f;
-			boxDims.z = 300.0f*perlin_heights[i * width + j];
-			this->ground[i * height + j].init(pos, boxDims);
-			this->ground[i * height + j].setOutlineColor(sf::Color(0, 255, 0, 255));
-			this->ground[i * height + j].setWallsColor(sf::Color(0, 0, 0, 255));
-			this->ground[i * height + j].setWallsColor(sf::Color(255, 0, 0, 255), 0);
-			this->ground[i * height + j].setWallsColor(sf::Color(0, 0, 255, 255), 1);
-			this->ground[i * height + j].setWallsColor(sf::Color(125, 125, 0, 255), 2);
-		}
-	}
-
-
-}
-
 std::list<sf::Vector2i> drawWall(sf::Vector2i left_top, int len, int dir) {
 	std::list<sf::Vector2i> pts;
 
@@ -363,39 +277,6 @@ bool GameMap::checkIfTileWalkable(sf::Vector2i pos) {
 }
 
 void GameMap::setRenderOrder() {
-	//this->groundForDisplay.reserve(10);
-
-//	sf::Vector2i playerPos(std::ceil(pPos.x), std::ceil(pPos.y));
-//	sf::Vector2i tilePos;
-
-	//std::cout << "CurrentPLayer : " << this->ground[(int)pPos.y * this->height + (int)pPos.x].getWorldPos() << "\n";
-
-	// Addall tiles from a circle
-	/*
-	std::ranges::for_each(this->ground, [&, this](MapBox& box) mutable {
-		
-		sf::Vector3f displacement;
-		displacement = box.getWorldPos() + (-1.0f) * pPos;
-		float r = vectorLength(displacement);
-		
-		if (r < 10.0f)
-			groundForDisplay.push_back(box);
-		
-		//std::cout << "pos: " << box.getWorldPos() << "\n";
-		
-		});
-	*/
-	
-	/*for (int i = -4; i < 3; i++) {
-		for (int j = -4; j < 3; j++) {
-			tilePos.y = std::max(playerPos.y + i, 0);
-			tilePos.x = std::max(playerPos.x + j, 0);
-
-			//std::cout << "box pos: " << this->ground[tilePos.y * height + tilePos.x].getWorldPos() << "\n";
-
-			this->groundForDisplay.push_back(this->ground[tilePos.y * height + tilePos.x]);
-		}
-	}*/
 
 	auto comp = [](const MapBox& a, const MapBox& b) -> bool {
 		sf::Vector3f va = a.getWorldPos();
@@ -412,17 +293,6 @@ void GameMap::setRenderOrder() {
 }
 
 void GameMap::render(sf::RenderWindow* w) {
-
-	/*for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 10; j++) {
-			this->ground[i * height + j].render(w);
-		}
-	}*/
-
-	//for (auto& e : this->ground)
-	//	e.render(w);
-
-	//this->temp.render(w);
 
 	for (auto& e : this->groundForDisplay)
 		e.render(w);
@@ -446,27 +316,6 @@ MapBox GameMap::getTile(int i, int j) {
 
 	return this->ground[i * this->width + j];
 }
-
-/*
-sf::Vector3f boxDims(1.0f, 1.0f, 1.0f);
-	sf::Vector3f pos; // Pos measured in tiles
-	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
-			pos.x = float(j) * boxDims.x;
-			pos.y = float(i) * boxDims.y;
-			//pos.z = (float(dist(rng)) + 0.5f) * boxDims.z * (dist(rng) == 1 ? (-1.0f) : 1.0f);
-			//pos.z = (0.1f) * boxDims.z * (dist(rng) == 1 ? (-1.0f) : 1.0f);
-			pos.z = 0.0f;
-			boxDims.z = 0.0f;//0.3f) * (float)(dist(rng));
-			this->ground[i * height + j].init(pos, boxDims);
-			this->ground[i * height + j].setOutlineColor(sf::Color(0, 255, 0, 255));
-			this->ground[i * height + j].setWallsColor(sf::Color(0, 0, 0, 255));
-			this->ground[i * height + j].setWallsColor(sf::Color(255, 0, 0, 255), 0);
-			this->ground[i * height + j].setWallsColor(sf::Color(0, 0, 255, 255), 1);
-			this->ground[i * height + j].setWallsColor(sf::Color(125, 125, 0, 255), 2);
-		}
-	}
-*/
 
 void GameMap::loadFromFile(std::string file_name) {
 	std::ifstream map_file("Game\\Maps\\" + file_name + ".txt");

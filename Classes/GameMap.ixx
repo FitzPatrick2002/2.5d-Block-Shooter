@@ -46,23 +46,29 @@ public:
 
 	// Terrain generation
 
-	void generateMap();
+	void generateMap(); // Random walls geenration
 
-	void generatePerlin();
+	// Paths for enemies generation
+
+
+
+	// FOV and drawing
 
 	void setPlayerFOV(sf::Vector3f playerPos, sf::Vector2f absoluteMousePosition);
 
 	void iterateOverWidth(int y, int width, sf::Vector3f playerPos, sf::Vector2f mousePos);
+
+	void setRenderOrder();
+
+	void render(sf::RenderWindow* w);
+
+	// Checkers
 
 	bool checkIfOnMap(sf::Vector2f pos);
 	bool checkIfOnMap(sf::Vector2i pos);
 
 	bool checkIfTileWalkable(sf::Vector2f pos);
 	bool checkIfTileWalkable(sf::Vector2i pos);
-
-	void setRenderOrder();
-
-	void render(sf::RenderWindow* w);
 
 	// Getters and setters
 
