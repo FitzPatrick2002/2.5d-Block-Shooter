@@ -1,4 +1,5 @@
 import GameMap;
+
 import <iostream>;
 import <random>;
 import <ranges>;
@@ -16,6 +17,7 @@ import <fstream>;
 import <string>;
 import <sstream>;
 import <unordered_map>;
+import <algorithm>;
 
 namespace fs = std::filesystem;
 
@@ -34,43 +36,13 @@ void GameMap::init(int w, int h, TextureManager* tM) {
 
 	this->textureManager = tM;
 
-	// Apparently only three points are deeded. 
-	// The rest will be filled by the consecutive cells
-
 	this->ground.resize(w * h);
 
-	/*sf::Vector3f pos; // Pos measured in tiles
-	for (int i = 0; i < h; i++) {
-		for (int j = 0; j < w; j++) {
-			pos.x = float(j) + 20.0f;
-			pos.y = float(i);
-			pos.z = float(5-i) * float(5-j) / 10.0f;
-			this->ground[i * h + j].init(pos);
-		}
-	}*/
-
 	this->generateMap();
+}
 
-	/*
-	std::vector<sf::Vector3f> pts = {
-		sf::Vector3f(0.0f,0.0f,0.0f),
-		sf::Vector3f(1.0f,0.0f,0.0f),
-		sf::Vector3f(1.0f,1.0f,0.0f),
-		sf::Vector3f(0.0f,1.0f,0.0f),
-		sf::Vector3f(0.0f,0.0f,0.0f)
-	};
+void GameMap::initChunks() {
 
-	sf::Vector3f pos; // Pos measured in tiles
-	for (int i = 0; i < h; i++) {
-		for (int j = 0; j < w; j++) {
-			pos.x = float(j) + 20.0f;
-			pos.y = float(i);
-			this->ground[i * h + j].reset(sf::LinesStrip, pos, pts, scrTileSize);
-		}
-	}*/
-	this->temp.init(sf::Vector3f(0, 0, 0), sf::Vector3f(0.1f, 0.1f, 0.1f));
-	this->temp.setOutlineColor(sf::Color::White);
-	this->temp.setWallsColor(sf::Color::Yellow);
 }
 
 std::list<sf::Vector2i> drawWall(sf::Vector2i left_top, int len, int dir) {
@@ -95,7 +67,7 @@ std::list<sf::Vector2i> drawWall(sf::Vector2i left_top, int len, int dir) {
 
 			if (temp.x < 0)
 				break;
-			
+
 			pts.push_back(temp);
 		}
 
@@ -132,7 +104,7 @@ void GameMap::generateMap() {
 			random_point.x += current_position.x;
 			random_point.y += current_position.y;
 
-			walls_positions.splice(walls_positions.end(), drawWall(random_point, partition_dims.x/2, dist(rng) == 2));
+			walls_positions.splice(walls_positions.end(), drawWall(random_point, partition_dims.x / 2, dist(rng) == 2));
 		}
 	}
 
@@ -170,7 +142,7 @@ void GameMap::generateMap() {
 		this->ground[e.y * width + e.x].setWallsColor(sf::Color(125, 125, 0, 255), 2);
 
 	}
-	
+
 }
 
 std::mutex mu;
@@ -178,10 +150,10 @@ void GameMap::iterateOverWidth(int y, int width, sf::Vector3f playerPos, sf::Vec
 	std::vector<MapBox> localBoxes;
 
 	auto subrange = this->ground
-		|	std::ranges::views::drop(y * this->width)
+		| std::ranges::views::drop(y * this->width)
 		| std::ranges::views::take(width);
 
-	std::ranges::for_each(subrange, [&, this](MapBox & box) mutable {
+	std::ranges::for_each(subrange, [&, this](MapBox& box) mutable {
 		sf::Vector3f displacement;
 		displacement = box.getWorldPos() + (-1.0f) * playerPos;
 		float r = vectorLength(displacement);
@@ -214,7 +186,7 @@ void GameMap::setPlayerFOV(sf::Vector3f playerPos, sf::Vector2f mousePos) {
 	}
 
 	while (this->mapPool.busy()) {
-		
+
 	}*/
 	//std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	/*std::vector<std::shared_ptr<std::thread>> threads;
@@ -236,9 +208,9 @@ void GameMap::setPlayerFOV(sf::Vector3f playerPos, sf::Vector2f mousePos) {
 
 		if (r < 25.0f) {
 			sf::Vector2f disp_xy(displacement.x, displacement.y);
-			float angle = dotProduct(disp_xy, mousePos) / (vectorLength(disp_xy)*vectorLength(mousePos));
+			float angle = dotProduct(disp_xy, mousePos) / (vectorLength(disp_xy) * vectorLength(mousePos));
 
-			if(angle > 3.14f/4.0f)
+			if (angle > 3.14f / 4.0f)
 				groundForDisplay.push_back(box);
 		}
 
@@ -262,7 +234,7 @@ bool GameMap::checkIfOnMap(sf::Vector2i pos) {
 }
 
 bool GameMap::checkIfTileWalkable(sf::Vector2f pos) {
-	
+
 	return this->checkIfTileWalkable(sf::Vector2i((int)(pos.x), (int)(pos.y)));
 }
 
@@ -282,11 +254,11 @@ void GameMap::setRenderOrder() {
 		sf::Vector3f va = a.getWorldPos();
 		sf::Vector3f vb = b.getWorldPos();
 
-		float sum_a = va.x + va.y -va.z; // + va.x;
+		float sum_a = va.x + va.y - va.z; // + va.x;
 		float sum_b = vb.x + vb.y - vb.z; // + vb.x;
-	
+
 		return sum_a < sum_b;
-	};
+		};
 
 	std::ranges::sort(groundForDisplay, comp); // Why an error? And this works regrardless of underline?
 
@@ -390,7 +362,7 @@ void GameMap::loadFromFile(std::string file_name) {
 
 				x++;
 			}
-			if(matched)
+			if (matched)
 				y++;
 
 			std::cout << line << "\n";
@@ -403,3 +375,76 @@ void GameMap::loadFromFile(std::string file_name) {
 	}
 
 }
+
+//---------------------------------------
+// --------------- CHUNK ----------------
+// --------------------------------------
+
+// Public constructor and destructor
+
+MapChunk::MapChunk() {
+
+}
+
+MapChunk::~MapChunk() {
+
+}
+
+// Private functions
+
+// 1. Generate random points withing the rectangle
+void MapChunk::generateWaypoints() {
+	int points_num = 5;
+	this->waypoints.resize(points_num);
+
+	std::random_device dev;
+	std::mt19937 rng(dev());
+	std::uniform_real_distribution<float> random_x(0.0f, dimensions.getSize().x);
+	std::uniform_real_distribution<float> random_y(0.0f, dimensions.getSize().y);
+
+	for (auto& e : this->waypoints) {
+		sf::Vector2f pt(random_x(rng), random_y(rng));
+
+		while (this->map_handle->checkIfTileWalkable(pt)) {
+			pt = sf::Vector2f(random_x(rng), random_y(rng));
+		}
+
+		e = pt;
+	}
+}
+
+void MapChunk::connectWaypoints() {
+
+}
+
+void MapChunk::shortenRoute() {
+
+}
+
+// Public functions
+
+void MapChunk::setDimensions(sf::FloatRect dims) {
+
+	sf::Vector2f right_bottom = dims.getPosition() + dims.getSize();
+
+	// If it extends outside the map, just make it smaller
+	if (not this->map_handle->checkIfOnMap(right_bottom)) {
+		float delta_x = std::max(0.0f, right_bottom.x - map_handle->getWidth());
+		float delta_y = std::max(0.0f, right_bottom.y - map_handle->getHeight());
+		sf::Vector2f offset(delta_x, delta_y);
+
+		dimensions = sf::FloatRect(dims.getPosition(), dims.getSize() - offset);
+	}
+}
+
+void MapChunk::init(GameMap* map, sf::FloatRect dims) {
+	this->map_handle = map;
+	this->setDimensions(dims);
+
+}
+
+void MapChunk::generateRoutes() {
+
+}
+
+

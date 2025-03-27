@@ -1,5 +1,3 @@
-//export module GameImp;
-
 import Combat;
 import linAlg;
 import GameManager;
@@ -29,6 +27,7 @@ void Combat::initialiseMap() {
 	// So that if it fails we can jump back to the main menu
 
 	this->map.loadFromFile(map_to_load);
+	this->map.initChunks();
 
 	//this->map.init(50, 50, &this->textureManager);
 
@@ -36,7 +35,7 @@ void Combat::initialiseMap() {
 
 void Combat::initPlayerView() {
 
-	this->playerView.setViewport(sf::FloatRect(0.0f, 0.0f, 1.0f, 1.0f)); 
+	this->playerView.setViewport(sf::FloatRect(0.0f, 0.0f, 1.0f, 1.0f));
 
 	this->playerViewSize = sf::Vector2f(1024.0f, 768.0f);
 	this->playerView.setSize(this->playerViewSize);
@@ -93,12 +92,12 @@ void Combat::handleUserInput() {
 		player.setVelVersor_X(-1.0f);
 	}
 
-	if(not sf::Keyboard::isKeyPressed(sf::Keyboard::W) and not sf::Keyboard::isKeyPressed(sf::Keyboard::A) and not sf::Keyboard::isKeyPressed(sf::Keyboard::S) and not sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+	if (not sf::Keyboard::isKeyPressed(sf::Keyboard::W) and not sf::Keyboard::isKeyPressed(sf::Keyboard::A) and not sf::Keyboard::isKeyPressed(sf::Keyboard::S) and not sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
 		player.setVelVersor(sf::Vector3f(0.0f, 0.0f, 0.0f));
 	}
 
 	// Use this -> just set some timer that counts time between shots (depending on the rifle used)
-	
+
 	//if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 	//	this->createPlayersBullet();
 	//}
@@ -124,8 +123,8 @@ sf::Vector2f Combat::getRawMousePosRelCenterNormalized() {
 	sf::Vector2f outcome;
 
 	mousePos = sf::Mouse::getPosition(*this->window);
-	outcome.x = (float)(mousePos.x) -(float)(this->window->getSize().x) / 2.0f;
-	outcome.y = (float)(mousePos.y) -(float)(this->window->getSize().y) / 2.0f;
+	outcome.x = (float)(mousePos.x) - (float)(this->window->getSize().x) / 2.0f;
+	outcome.y = (float)(mousePos.y) - (float)(this->window->getSize().y) / 2.0f;
 	//std::cout << "Mouse pos: " << outcome << "\n";
 	//outcome.x /= (float)(this->window->getSize().x);
 	//outcome.y /= (float)(this->window->getSize().y);
@@ -196,7 +195,7 @@ void Combat::checkBulletsCollisions() {
 void Combat::checkCollisions() {
 
 	this->checkBulletsCollisions();
-	
+
 }
 
 void Combat::removeObjects() {
@@ -213,7 +212,7 @@ void Combat::removeObjects() {
 void Combat::update(sf::Time deltaTime) {
 
 	//std::cout << "Fps: " << 1 / float(deltaTime.asSeconds()) << "\n";
-	
+
 	//std::cout << this->player.getWorldPos().x<< ", "<<this->player.getWorldPos().y << "\n";
 	this->handleUserInput();
 
