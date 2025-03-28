@@ -278,6 +278,10 @@ int GameMap::getWidth() {
 	return this->width;
 }
 
+sf::Vector2i GameMap::getChunksAmount() {
+	return this->chunks_amount;
+}
+
 MapBox GameMap::getTile(int i, int j) {
 
 	if (i < 0 or i > this->height)
@@ -394,7 +398,7 @@ MapChunk::~MapChunk() {
 
 // 1. Generate random points withing the rectangle
 void MapChunk::generateWaypoints() {
-	int points_num = 5;
+	int points_num = 5; // Make it ranodm / dependent on some characteristics of the map
 	this->waypoints.resize(points_num);
 
 	std::random_device dev;
@@ -414,6 +418,8 @@ void MapChunk::generateWaypoints() {
 }
 
 void MapChunk::connectWaypoints() {
+
+
 
 }
 

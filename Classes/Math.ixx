@@ -58,11 +58,32 @@ export sf::Vector2f operator-(sf::Vector2f& v1, sf::Vector2f& v2) {
 	return outcome;
 }
 
+export sf::Vector2i operator+(sf::Vector2i& v1, sf::Vector2i& v2) {
+	sf::Vector2i outcome;
+	outcome.x = v1.x + v2.x;
+	outcome.y = v1.y + v2.y;
+
+	return outcome;
+}
+
+export sf::Vector2i operator-(sf::Vector2i& v1, sf::Vector2i& v2) {
+	sf::Vector2i outcome;
+	outcome.x = v1.x - v2.x;
+	outcome.y = v1.y - v2.y;
+
+	return outcome;
+}
+
 /*
 export std::ostream& operator<<(std::ostream& o, sf::Vector2f& v) {
 	o << "(" << v.x << ", " << v.y << ")";
 	return o;
 }*/
+
+export std::ostream& operator<<(std::ostream& o, sf::Vector2i v) {
+	o << "(" << v.x << ", " << v.y << ")";
+	return o;
+}
 
 export std::ostream& operator<<(std::ostream& o, sf::Vector2f v) {
 	o << "(" << v.x << ", " << v.y << ")";

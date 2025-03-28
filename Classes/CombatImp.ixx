@@ -3,6 +3,8 @@ import linAlg;
 import GameManager;
 import MovementManager;
 
+import GameMap;
+
 import <chrono>;
 
 Combat::Combat(sf::RenderWindow* win) : GameState(win) {

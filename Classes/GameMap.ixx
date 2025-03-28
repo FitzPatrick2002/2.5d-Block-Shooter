@@ -51,7 +51,7 @@ public:
 
 	void init(int w, int h, TextureManager* tM);
 
-	void initChunks(); // Call it after downloading / generatng map
+	void initChunks(); // Call it after downloading / generatng map, or if map is loaded from file, just read the value
 
 	// Terrain generation
 
@@ -84,6 +84,8 @@ public:
 	int getHeight();
 
 	int getWidth();
+
+	sf::Vector2i getChunksAmount();
 
 	MapBox getTile(int i, int j);
 
