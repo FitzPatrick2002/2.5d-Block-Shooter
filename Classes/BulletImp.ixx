@@ -16,6 +16,7 @@ Bullet::~Bullet() {
 
 }
 
+// Depreciated and not used anymore
 void Bullet::init(sf::Vector3f pos, float angle) {
 	this->worldPos = pos;
 	float v_x = cos(angle);

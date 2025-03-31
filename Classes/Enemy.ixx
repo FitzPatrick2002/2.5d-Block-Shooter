@@ -20,19 +20,27 @@ private:
 	std::queue<std::shared_ptr<BasicCommand>> commands_queue;
 	std::shared_ptr<BasicCommand> current_command;
 
+private:
+
+	void updatePosition(sf::Time deltaTime);
+
+	void performCommand();
+
 public:
 
 	Enemy();
 	~Enemy();
 
-	void updatePosition(sf::Time deltaTime);
+	void init(sf::Vector3f pos);
 
 	void update(sf::Time deltaTime);
-
-	void performCommand();
 
 	void queueCommand(BasicCommand* command);
 
 	void render(sf::RenderWindow* win);
+
+	CommandType getCommandID();
+
+	bool commandQueueEmpty();
 
 };

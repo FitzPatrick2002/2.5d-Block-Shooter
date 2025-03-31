@@ -4,6 +4,7 @@ import <SFML/Graphics.hpp>;
 
 import Player;
 import GameMap;
+import Enemy;
 
 export class MovementManager {
 private:
@@ -26,4 +27,6 @@ public:
 	void removeData();
 
 	void movePlayer(Player &p, sf::Time deltaTime);
+
+	//void moveEnemy(Enemy &enemy, )
 };

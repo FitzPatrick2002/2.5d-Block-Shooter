@@ -20,6 +20,8 @@ private:
 
 	sf::Vector3f worldPos;
 
+	void setWorldPos(sf::Vector3f p) {}
+
 public:
 
 	MapBox();

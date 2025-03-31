@@ -13,6 +13,8 @@ Combat::Combat(sf::RenderWindow* win) : GameState(win) {
 	this->initialiseMap();
 	this->initPlayerView();
 
+	this->initEnemies();
+
 	MovementManager::getManager().setManagerData(&this->map);
 }
 
@@ -45,6 +47,30 @@ void Combat::initPlayerView() {
 	this->playerViewScrollVal = 1.0f;
 
 	this->window->setView(this->playerView);
+}
+
+void Combat::initEnemies() {
+
+	for (int i = 0; i < 3; i++) {
+		sf::Vector3f position(2, 2 + (i * 2), 0);
+		Enemy e;
+
+		Start_movement mov(sf::Vector2f(1.0f, 0.0f), 2.0f);
+		Check_if_at_destination dest(sf::Vector2f(10.0f, 0.0f));
+
+		Stop_movement stop;
+
+		this->enemies.insert({sf::Vector2i(position.x, position.y), e});
+		
+		this->enemies.find(V3_to_2i(position))->second.init(position);
+		//this->enemies[V3_to_2i(position)].init(position);
+
+	//	this->enemies[V3_to_2i(position)].queueCommand(&mov);
+	//	this->enemies[V3_to_2i(position)].queueCommand(&dest);
+	//	this->enemies[V3_to_2i(position)].queueCommand(&stop);
+	}
+
+	this->enemies_manager.init(&this->map);
 }
 
 void Combat::updatePlayerFOV() {
@@ -184,14 +210,42 @@ void Combat::checkBulletsCollisions() {
 	std::list<Bullet>::iterator itr_2 = bullets.begin();
 
 	for (itr; itr != bullets.end(); itr++) {
+		bool removed = false;
 
 		if (not this->map.checkIfOnMap(itr->getWorld_XY())) {
 			this->addBulletForRemoval(itr);
+			//itr = this->bullets.erase(itr);
+			removed = true;
 		}
 
-		if (not this->map.checkIfTileWalkable(itr->getWorld_XY()))
+		if (not this->map.checkIfTileWalkable(itr->getWorld_XY())) {
 			this->addBulletForRemoval(itr);
+			//itr = this->bullets.erase(itr);
+			removed = true;
+		}
+
+		// Check collisions with enemies
+		sf::Vector2i bullet_pos = v2f_to_v2i(itr->getWorld_XY());
+		std::unordered_map <sf::Vector2i, Enemy, Vector2iHash>::iterator enemy_itr = this->enemies.find(bullet_pos);
+		if (enemy_itr != this->enemies.end()) {
+			
+			this->addBulletForRemoval(itr);
+			//itr = this->bullets.erase(itr);
+			this->enemies.erase(enemy_itr);
+			
+			removed = true;
+		}
+
+		//if (not removed) {
+		//	++itr;
+		//}
+
+
 	}
+}
+
+void Combat::checkEnemiesCollisions() {
+	// Apparently everything is done in the bullets collisions
 }
 
 void Combat::checkCollisions() {
@@ -201,12 +255,44 @@ void Combat::checkCollisions() {
 }
 
 void Combat::removeObjects() {
-	for (auto& e : bulletsToRemove)
+	for (auto& e : bulletsToRemove) // This may cause iterator invalidation? Or smth, use std::remove_if or what not. Or just remove stuff inside the main loop
 		bullets.erase(e);
 
 	bulletsToRemove.clear();
 
 
+}
+
+void Combat::updateEnemies(sf::Time deltaTime) {
+
+	std::vector<std::tuple<sf::Vector2i, sf::Vector2i, Enemy*>> positions_for_change;
+
+	for (auto& e : enemies) { 
+		sf::Vector2i previous_position = e.first; // Compare the current (int) position with the one after updating the position, if these positions differ we need to store this element under in different bucket
+		e.second.update(deltaTime); 
+		sf::Vector2i current_position = V3_to_2i(e.second.getWorldPos());
+
+		// If position of the enemy changed, save the info about the current key, new key and the enemy whose position is to be changed
+		if (current_position != previous_position) {
+			positions_for_change.push_back({ previous_position, current_position, &e.second });
+		}
+		
+		this->enemies_manager.updateEnemy(e.second);
+	}
+
+	// Iterate over all the enemeis that need rehashing
+	for (const auto& [prev, new_pos, enemy] : positions_for_change) {
+
+		auto range = enemies.equal_range(prev); // get all the enemies from that particular bucket
+		for (auto it = range.first; it != range.second; it++) {
+
+			if (&it->second == enemy) {// If it is the right enemy change the key, and insert the enemy anew with a new key
+				enemies.insert({ new_pos, std::move(it->second) });
+				enemies.erase(it);
+				break; // Once we've updated the enemy there is no need to iterate further, we would get an iterator invalidation error anyways
+			}
+		}
+	}
 }
 
 // Here we put all the stuff that does not regard rendering and graphics
@@ -228,6 +314,8 @@ void Combat::update(sf::Time deltaTime) {
 		b.update(deltaTime);
 	}
 
+	this->updateEnemies(deltaTime);
+
 	this->checkCollisions();
 
 	this->removeObjects();
@@ -248,6 +336,9 @@ void Combat::render() {
 
 	for (auto& e : bullets)
 		e.render(window);
+
+	for (auto& e : enemies)
+		e.second.render(window);
 
 	this->player.render(window);
 

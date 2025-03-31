@@ -34,6 +34,8 @@ void GameMap::init(int w, int h, TextureManager* tM) {
 	this->width = w;
 	this->height = h;
 
+	this->dfs_search.setMap(this);
+
 	this->textureManager = tM;
 
 	this->ground.resize(w * h);
@@ -296,8 +298,10 @@ MapBox GameMap::getTile(int i, int j) {
 void GameMap::loadFromFile(std::string file_name) {
 	std::ifstream map_file("Game\\Maps\\" + file_name + ".txt");
 
+	this->dfs_search.setMap(this);
+
 	auto read_width_height = [&, this]() {
-		std::regex params_regex("([A-Za-z]+):\\s*(\\d+)");
+		std::regex params_regex("([A-Za-z ]+):\\s*(\\d+)");
 		std::smatch m;
 
 		std::map <std::string, int> params;
@@ -306,6 +310,7 @@ void GameMap::loadFromFile(std::string file_name) {
 		// 2. Read the map matrix row by row
 		//		2.1. After reading a row initilise data inside the map already
 
+		// Read width and height
 		std::string line;
 		while (std::getline(map_file, line)) {
 			if (std::regex_search(line, m, params_regex)) {
@@ -318,6 +323,7 @@ void GameMap::loadFromFile(std::string file_name) {
 
 		this->width = params["width"];
 		this->height = params["height"];
+
 
 		if (height <= 0 or width <= 0) {
 			std::cerr << "Can't find dimensions of the map\n";
@@ -343,10 +349,11 @@ void GameMap::loadFromFile(std::string file_name) {
 		read_width_height();
 
 		// Read the map matrix row by row and create 
+
 		this->ground.clear();
 		this->ground.resize(width * height);
 
-		std::regex map_regex("\\s*(-?\\d+\\.?\\d*)\\s*");
+		std::regex map_regex("\\s*(-?\\d+\\.?\\d*)\\s*"); // Regex for reading rows of the map
 
 		std::string line;
 		int y = 0, x = 0;
@@ -354,6 +361,8 @@ void GameMap::loadFromFile(std::string file_name) {
 		while (std::getline(map_file, line)) {
 			auto heights_begin = std::sregex_iterator(line.begin(), line.end(), map_regex);
 			auto heights_end = std::sregex_iterator();
+
+			// Iterate thorough the line and find all occurences of the patter -> reading heights of cells)
 
 			matched = false;
 			x = 0;
@@ -373,84 +382,10 @@ void GameMap::loadFromFile(std::string file_name) {
 		}
 
 		map_file.close();
+
 	}
 	else {
 		std::cerr << "Cannot open the file for the map\n";
 	}
 
 }
-
-//---------------------------------------
-// --------------- CHUNK ----------------
-// --------------------------------------
-
-// Public constructor and destructor
-
-MapChunk::MapChunk() {
-
-}
-
-MapChunk::~MapChunk() {
-
-}
-
-// Private functions
-
-// 1. Generate random points withing the rectangle
-void MapChunk::generateWaypoints() {
-	int points_num = 5; // Make it ranodm / dependent on some characteristics of the map
-	this->waypoints.resize(points_num);
-
-	std::random_device dev;
-	std::mt19937 rng(dev());
-	std::uniform_real_distribution<float> random_x(0.0f, dimensions.getSize().x);
-	std::uniform_real_distribution<float> random_y(0.0f, dimensions.getSize().y);
-
-	for (auto& e : this->waypoints) {
-		sf::Vector2f pt(random_x(rng), random_y(rng));
-
-		while (this->map_handle->checkIfTileWalkable(pt)) {
-			pt = sf::Vector2f(random_x(rng), random_y(rng));
-		}
-
-		e = pt;
-	}
-}
-
-void MapChunk::connectWaypoints() {
-
-
-
-}
-
-void MapChunk::shortenRoute() {
-
-}
-
-// Public functions
-
-void MapChunk::setDimensions(sf::FloatRect dims) {
-
-	sf::Vector2f right_bottom = dims.getPosition() + dims.getSize();
-
-	// If it extends outside the map, just make it smaller
-	if (not this->map_handle->checkIfOnMap(right_bottom)) {
-		float delta_x = std::max(0.0f, right_bottom.x - map_handle->getWidth());
-		float delta_y = std::max(0.0f, right_bottom.y - map_handle->getHeight());
-		sf::Vector2f offset(delta_x, delta_y);
-
-		dimensions = sf::FloatRect(dims.getPosition(), dims.getSize() - offset);
-	}
-}
-
-void MapChunk::init(GameMap* map, sf::FloatRect dims) {
-	this->map_handle = map;
-	this->setDimensions(dims);
-
-}
-
-void MapChunk::generateRoutes() {
-
-}
-
-

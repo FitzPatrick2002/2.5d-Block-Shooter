@@ -77,7 +77,7 @@ void Player::movePlayer(sf::Time deltaTime) {
 
 void Player::update(sf::Time deltaTime) {
 
-	this->movePlayer(deltaTime);
+	//this->movePlayer(deltaTime);
 	this->updateModelPosition();
 
 }

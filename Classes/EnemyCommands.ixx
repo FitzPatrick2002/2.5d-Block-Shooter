@@ -12,7 +12,8 @@ export enum class CommandType
 	StartMovement,
 	StopMovement,
 	CheckIfAtDestination,
-	Wait
+	Wait,
+	Undefined
 };
 
 export class BasicCommand {

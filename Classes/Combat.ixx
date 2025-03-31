@@ -7,14 +7,22 @@ import <iostream>;
 import <list>;
 import <random>;
 import <unordered_set>;
+import <unordered_map>;
+
 
 import Entity;
 import Player;
 import TextureManager;
 import Bullet;
+import Enemy;
+
+import EnemiesManager;
 
 import GameMap;
 import MovementManager;
+
+import linAlg;
+
 
 struct HashListIterator {
 	template<class T>
@@ -35,6 +43,10 @@ private:
 	std::list<Bullet> bullets;
 	std::unordered_set<std::list<Bullet>::iterator, HashListIterator> bulletsToRemove;
 
+	//std::unordered_map<sf::Vector2i, Enemy, Vector2iHash> enemies;
+	std::unordered_multimap<sf::Vector2i, Enemy, Vector2iHash> enemies;
+	EnemiesManager enemies_manager;
+
 	Player player;
 
 	// Temporary testing the 3d objects
@@ -43,8 +55,6 @@ private:
 	sf::Vector2f playerViewSize;
 	sf::View playerView;
 	float playerViewScrollVal;
-
-	
 
 public:
 
@@ -56,6 +66,8 @@ public:
 
 	void initPlayerView();
 	
+	void initEnemies();
+
 	void updatePlayerView();
 
 	void updatePlayerFOV();
@@ -83,9 +95,14 @@ public:
 
 	void checkBulletsCollisions();
 
+	void checkEnemiesCollisions();
+
 	void checkCollisions();
 
 	void removeObjects();
+
+	// It updates the current "hitboxes" in the unordered_map enemies
+	void updateEnemies(sf::Time deltaTime);
 
 	// Here we put all the stuff that does not regard rendering and graphics
 	// User input, Updating positions, physics, etc.
