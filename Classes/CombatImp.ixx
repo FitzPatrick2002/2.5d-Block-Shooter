@@ -70,7 +70,7 @@ void Combat::initEnemies() {
 	//	this->enemies[V3_to_2i(position)].queueCommand(&stop);
 	}
 
-	this->enemies_manager.init(&this->map);
+	this->enemies_manager.init(&this->map, &this->player);
 }
 
 void Combat::updatePlayerFOV() {

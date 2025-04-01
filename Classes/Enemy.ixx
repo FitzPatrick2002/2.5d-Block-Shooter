@@ -13,9 +13,20 @@ import <iostream>;
 
 import <SFML/Graphics.hpp>;
 
+class Player;
+
+export enum class EnemyState
+{
+	Patrol,
+	Combat
+};
+
 export class Enemy : public Entity {
 private:
 	MapBox model_3d;
+
+	EnemyState current_status;
+	float view_range;
 
 	std::queue<std::shared_ptr<BasicCommand>> commands_queue;
 	std::shared_ptr<BasicCommand> current_command;
@@ -39,8 +50,20 @@ public:
 
 	void render(sf::RenderWindow* win);
 
+	// Setters
+
+	void setStatus(EnemyState state);
+
+	void clearCommandsQueue();
+
+	// Getters
+
 	CommandType getCommandID();
 
 	bool commandQueueEmpty();
+
+	EnemyState getStatus();
+
+	float getViewRange();
 
 };

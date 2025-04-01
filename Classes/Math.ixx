@@ -8,6 +8,11 @@ import <unordered_set>;
 import <unordered_map>;
 import <memory>;
 import <random>;
+import <map>;
+import <set>;
+import <iostream>;
+import <functional>;
+import <iostream>;
 
 class GameMap;
 
@@ -172,6 +177,11 @@ export std::ostream& operator<<(std::ostream& o, sf::Vector3f v) {
 	return o;
 }
 
+export std::ostream& operator<<(std::ostream& o, sf::Vector3i v) {
+	o << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+	return o;
+}
+
 /*
 export sf::Vector2f operator*(float& f, sf::Vector2f& v) {
 	sf::Vector2f outcome;
@@ -298,4 +308,320 @@ export sf::Vector2f random_V2f(float low_x, float high_x, float low_y, float hig
 	outcome.y = get_random_float(low_y, high_y);
 
 	return outcome;
+}
+
+struct NodeData {
+	sf::Vector2i position;
+	sf::Vector2i previous;
+	int H_cost;
+	int G_cost;
+
+	void set(sf::Vector2i pos, sf::Vector2i prev, int H, int G) {
+		this->position = pos;
+		this->previous = prev;
+		this->H_cost = H;
+		this->G_cost = G;
+	}
+
+	int getTotalCost() const {
+		return H_cost + G_cost;
+	}
+	bool operator>(const NodeData& n) {
+		return this->getTotalCost() > n.getTotalCost();
+	}
+};
+
+/*
+struct NodeDataHash {
+	size_t operator()(const NodeData& data) const {
+		return std::hash<int>()(data.position.x) ^ std::hash<int>()(data.position.y);
+	}
+};
+*/
+
+struct NodeDataComparator {
+	bool operator()(const NodeData& a, const NodeData& b) const {
+		if (a.getTotalCost() != b.getTotalCost()) {
+			return a.getTotalCost() < b.getTotalCost();
+		}
+		else {
+			return a.G_cost < b.G_cost;
+		}
+	}
+};
+
+
+// Rewrite this so that it uses std::unordered_map 
+// Also have a set for storing them in an ordered way. 
+// So basically 
+struct ExplorationContainer {
+	//std::set<NodeData, NodeDataComparator> queue;
+	std::unordered_map <sf::Vector2i, NodeData, Vector2iHash> map;
+	std::multiset<NodeData, NodeDataComparator> set; // Actually I will need to store the position in the set. Because 
+
+	// !!!
+
+	// ACTAULLY I CHANGED SET -> MULTISET ? - And now it works? maybe some nodes had the same predecessor, costs and stuff? I dunno... 
+
+	// !!!
+
+	// If element is new, just insert it
+	// If it already exist check if the new data is more promising (lower costs)
+	// If so, overwrite existing, if not, don't
+	void insert(sf::Vector2i position, NodeData& data) {
+
+		if (map.find(position) == map.end()) {
+			map[position] = data;
+			set.insert(data);
+		}
+		else {
+			NodeData old_data = map[position];
+
+			// Insert only if new cost is lower than the current
+			// If the 
+
+			if (old_data.getTotalCost() < data.getTotalCost()) {
+				return;
+			}
+			else {
+				if (old_data.getTotalCost() == data.getTotalCost()) {
+					if (old_data.H_cost < data.H_cost)
+						return;
+				}
+
+				// Reinsert into set updated value
+				auto handle = set.extract(old_data);
+				handle.value() = data;
+				set.insert(std::move(handle));
+
+				map[position] = data; // Set new data for that bucket on the map
+			}
+
+		}
+	}
+
+	void erase(sf::Vector2i position) {
+		if (map.find(position) != map.end()) {
+			NodeData temp = map[position];
+
+			set.erase(temp);
+			map.erase(position);
+		}
+		else {
+			std::cerr << "Can't delete smth from the map / queue that doesn't exist in it\n";
+		}
+
+	}
+
+	void updateExisting(sf::Vector2i position, NodeData new_data) {
+
+		if (map.find(position) != map.end()) {
+			NodeData old_data = map[position];
+
+			auto temp = set.extract(old_data);
+			temp.value().position = new_data.position;
+			temp.value().G_cost = new_data.G_cost;
+			temp.value().H_cost = new_data.H_cost;
+			temp.value().previous = new_data.previous;
+
+			set.insert(std::move(temp));
+			map[position] = new_data;
+		}
+		else {
+			std::cerr << "Can't update something that doesn't exist in the map\n";
+		}
+
+	}
+
+	NodeData getFrontData() {
+		if (not set.empty())
+			return *set.begin();
+
+		std::cerr << "Can't get front of the set, there is nothing isnide!\n";
+		return NodeData();
+	}
+
+	sf::Vector2i getFrontPosition() {
+		if (not set.empty())
+			return set.begin()->position;
+
+		std::cerr << "Can't get front position of the set, there is nothing isnide!\n";
+		return sf::Vector2i(0, 0);
+	}
+
+};
+
+/*
+struct ExplorationContainer {
+	std::set<NodeData, NodeDataComparator> queue;
+
+	void insert(NodeData& data) {
+		queue.insert(data);
+	}
+
+	NodeData find() {
+
+	}
+
+	void updateExisting(NodeData& old_data, NodeData new_data) {
+		if (queue.find(old_data) != queue.end()) {
+			auto handle = queue.extract(old_data);
+
+			handle.value().previous = new_data.previous;
+			handle.value().G_cost = new_data.G_cost;
+			handle.value().H_cost = new_data.H_cost;
+
+			queue.insert(std::move(handle));
+		}
+		else {
+			std::cerr << "Cannot update data in the queue (set really), beacuse it sodesnt exist in it\n";
+		}
+	}
+
+	NodeData erase(NodeData& data) {
+		NodeData temp;
+
+		if (queue.find(data) != queue.end()) {
+			temp = *queue.find(data);
+			queue.erase(data);
+		}
+		else {
+			std::cerr << "Can't delete data that doesn't exist in the queue/set\n";
+		}
+
+		return temp;
+	}
+
+};
+*/
+
+/*struct UniquePriorityQueue {
+	std::priority_queue<NodeData> queue;
+	std::unordered_set<NodeData> set;
+
+	void add(NodeData& data) {
+		if (set.insert(data).second) {
+			queue.push(data);
+		}
+	}
+
+	NodeData getFirst() {
+		if (not queue.empty()) {
+			NodeData temp = queue.top();
+			set.erase(temp);
+			queue.pop();
+
+			return temp;
+		}
+		else {
+			return NodeData();
+		}
+	}
+
+};*/
+
+//bool checkIfTileWalkable(sf::Vector2f pos);
+
+export std::list<sf::Vector2i> A_starSearch(std::function<bool(sf::Vector2i)>& isWalkable, sf::Vector2i start, sf::Vector2i end) {
+	ExplorationContainer for_exploration;
+	std::unordered_map<sf::Vector2i, NodeData, Vector2iHash> already_visited;
+
+	sf::Vector3i debugging[10][10];
+
+	sf::Vector2i directions[8] = {
+		{0, -1}, //North
+		{1, -1}, //North-East
+		{1, 0}, // East
+		{1, 1}, // South-East
+		{0, 1}, // South
+		{-1, 1}, // South-West
+		{-1, 0}, // West
+		{-1, -1} // North-West
+	};
+
+	// Cost to tgetting there from end
+	auto calc_H_cost = [&](sf::Vector2i position, sf::Vector2i end) {
+		int delta_x = abs(end.x - position.x);
+		int delta_y = abs(end.y - position.y);
+
+		int normal_cost = std::min(delta_x, delta_y);
+		int diagonal_cost = std::max(delta_x, delta_y) - normal_cost;
+
+		return normal_cost * 10 + diagonal_cost * 14;
+		};
+
+	// Cost to getting there from start
+	auto calc_G_cost = [&](sf::Vector2i position, sf::Vector2i prev) {
+		int dx = abs(prev.x - position.x);
+		int dy = abs(prev.y - position.y);
+
+		int cost;
+		if (dx != dy)
+			cost = 10;
+		else
+			cost = 14;
+
+		return cost + already_visited[prev].G_cost;
+		};
+
+	// 1. Push the start node
+
+	sf::Vector2i current_position;
+	NodeData current_data;
+
+	current_position = start;
+	current_data.set(start, start, 0, 0);
+
+	for_exploration.insert(current_position, current_data);
+
+	while (current_position != end) {
+		// Get the most promising node from the front of the queue. 
+		// Delete it from the queue and mark as already explored
+
+		current_position = for_exploration.getFrontPosition();
+		current_data = for_exploration.getFrontData();
+
+		debugging[current_position.y][current_position.x] = sf::Vector3i(current_data.G_cost, current_data.getTotalCost(), current_data.H_cost);
+
+		//std::cout << "Current position: " << current_position << "\n";
+
+		/*for (int i = 0; i < 10; i++) {
+			for (int j = 0; j < 10; j++) {
+				std::cout << debugging[i][j] << " ";
+			}
+			std::cout << "\n";
+		}*/
+
+		for_exploration.erase(current_position);
+		already_visited[current_position] = current_data;
+
+		// Push the neighbours of the current node to the exploration queue
+		for (int i = 0; i < 8; i++) {
+			sf::Vector2i neighbour_position = current_position + directions[i];
+
+			if (isWalkable(neighbour_position) and (already_visited.find(neighbour_position) == already_visited.end())) {
+				NodeData neighbour_data;
+
+				neighbour_data.position = neighbour_position;
+				neighbour_data.previous = current_position;
+				neighbour_data.G_cost = calc_G_cost(neighbour_position, current_position);
+				neighbour_data.H_cost = calc_H_cost(neighbour_position, end);
+
+				for_exploration.insert(neighbour_position, neighbour_data);
+			}
+		}
+
+		std::cout << "Sizes: " << for_exploration.map.size() << " " << for_exploration.set.size() << "\n";
+
+	}
+
+	std::list<sf::Vector2i> path;
+
+	sf::Vector2i current = end;
+	while (current != start) {
+		path.push_front(current);
+		current = already_visited[current].previous;
+	}
+
+	return path;
 }

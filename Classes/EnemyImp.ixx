@@ -1,4 +1,5 @@
 import Enemy;
+import Player;
 
 import linAlg;
 
@@ -7,6 +8,9 @@ import <iostream>;
 Enemy::Enemy() {
 	
 	this->current_command = nullptr;
+	this->current_status = EnemyState::Patrol;
+	this->view_range = 7.0f;
+
 }
 
 Enemy::~Enemy() {
@@ -118,7 +122,6 @@ void Enemy::update(sf::Time deltaTime) {
 
 	this->performCommand();
 
-	//std::cout << "Position: " << this->getWorld_XY() << "\n";
 	this->updatePosition(deltaTime);
 }
 
@@ -126,6 +129,19 @@ void Enemy::render(sf::RenderWindow* win) {
 
 	this->model_3d.render(win);
 }
+
+// Setters
+
+void Enemy::setStatus(EnemyState state) {
+
+	this->current_status = state;
+}
+
+void Enemy::clearCommandsQueue() {
+	this->commands_queue = std::queue<std::shared_ptr<BasicCommand>>();
+}
+
+// Getters
 
 CommandType Enemy::getCommandID() {
 	if (current_command == nullptr)
@@ -135,5 +151,16 @@ CommandType Enemy::getCommandID() {
 }
 
 bool Enemy::commandQueueEmpty() {
+	
 	return this->commands_queue.empty();
+}
+
+EnemyState Enemy::getStatus() {
+	
+	return this->current_status;
+}
+
+float Enemy::getViewRange() {
+	
+	return this->view_range;
 }

@@ -6,16 +6,23 @@ import EnemyCommands;
 import linAlg;
 import GameMap;
 
+import Player;
+
 export class EnemiesManager {
 private:
 	GameMap* gameMap_handle;
+	Player* player_handle;
+
+private:
+
+	bool checkIfEnemySeesPlayer(Enemy& e);
 
 public:
 
 	EnemiesManager();
 	~EnemiesManager();
 
-	void init(GameMap* gameMap_handle);
+	void init(GameMap* gameMap_handle, Player* p);
 
 	// For starters:
 	// 1. Check which command is being performed

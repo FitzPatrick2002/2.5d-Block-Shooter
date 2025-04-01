@@ -23,6 +23,42 @@ import <unordered_set>;
 import Enemy;
 import <ranges>;
 
+struct TempMap {
+
+	std::string arr[10] = {
+		"..........",
+		"########..",
+		"..........",
+		"..#.#.#...",
+		".........#",
+		".#.####...",
+		"......#...",
+		"......#...",
+		"..........",
+		".........."
+	};
+
+	bool isInBounds(sf::Vector2i pos) {
+		if (pos.x < 0 or pos.x >= 10)
+			return false;
+
+		if (pos.y < 0 or pos.y >= 10)
+			return false;
+
+		return true;
+	}
+
+	bool isWalkable(sf::Vector2i pos) {
+		if (not isInBounds(pos))
+			return false;
+
+		if (arr[pos.y][pos.x] == '#')
+			return false;
+		
+		return true;
+	}
+
+};
 
 int main()
 {
@@ -55,6 +91,43 @@ int main()
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 	*/
+
+	TempMap temp_map;
+
+	std::function<bool(sf::Vector2i)> func = [&](sf::Vector2i vec) {
+		return temp_map.isWalkable(vec);
+		};
+
+	/*
+		"..........",
+		"..........",
+		"..........",
+		"..#.#.#...",
+		".........#",
+		".#.####...",
+		"......#...",
+		"......#...",
+		"..........",
+		".........."
+	*/
+
+
+	std::list<sf::Vector2i> path = A_starSearch(func, sf::Vector2i(2, 0), sf::Vector2i(2, 8));
+	for (auto& e : path)
+		temp_map.arr[e.y][e.x] = '+';
+
+
+	temp_map.arr[1][1] = 's';
+	temp_map.arr[6][5] = 'e';
+
+
+	for (int i = 0; i < 10; i++) {
+		for(int j = 0; j < 10; j++)
+			std::cout<<temp_map.arr[i][j];
+
+		std::cout << "\n";
+	}
+
 
 
 	GameManager::getManager().update();
