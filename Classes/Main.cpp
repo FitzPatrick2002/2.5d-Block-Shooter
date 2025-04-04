@@ -92,11 +92,67 @@ int main()
 	}
 	*/
 
+	/*
 	TempMap temp_map;
 
 	std::function<bool(sf::Vector2i)> func = [&](sf::Vector2i vec) {
 		return temp_map.isWalkable(vec);
 		};
+
+	std::vector <sf::Vector2i> walkables;
+
+	for (int i = 0; i < 10; i++) {
+		for (int j = 0; j < 10; j++) {
+			if (temp_map.isWalkable(sf::Vector2i(j, i)))
+				walkables.push_back(sf::Vector2i(j, i));
+		}
+	}
+
+	std::vector<std::pair<sf::Vector2i, sf::Vector2i>> permutations;
+
+	for (int i = 0; i < walkables.size(); i++) {
+		for (int j = i; j < walkables.size(); j++) {
+			permutations.push_back(std::pair<sf::Vector2i, sf::Vector2i>(walkables[i], walkables[j]));
+		}
+	}
+	*/
+
+	/*auto a = std::pair<sf::Vector2i, sf::Vector2i>(sf::Vector2i(9, 0), sf::Vector2i(5, 7));
+	auto b = std::pair<sf::Vector2i, sf::Vector2i>(sf::Vector2i(9, 0), sf::Vector2i(4, 8));
+	auto c = std::pair<sf::Vector2i, sf::Vector2i>(sf::Vector2i(9, 0), sf::Vector2i(3, 9));
+	auto d = std::pair<sf::Vector2i, sf::Vector2i>(sf::Vector2i(9, 1), sf::Vector2i(5, 7));
+	auto e = std::pair<sf::Vector2i, sf::Vector2i>(sf::Vector2i(9, 1), sf::Vector2i(4, 8));
+	auto f = std::pair<sf::Vector2i, sf::Vector2i>(sf::Vector2i(9, 1), sf::Vector2i(3, 9));
+	auto g = std::pair<sf::Vector2i, sf::Vector2i>(sf::Vector2i(1, 2), sf::Vector2i(4, 6));
+	auto h = std::pair<sf::Vector2i, sf::Vector2i>(sf::Vector2i(1, 2), sf::Vector2i(5, 7)); 
+	auto i = std::pair<sf::Vector2i, sf::Vector2i>(sf::Vector2i(1, 2), sf::Vector2i(6, 8)); // handle.values() = ... 394 line
+	auto temp = std::find(permutations.begin(), permutations.end(), a);
+	permutations.erase(temp);
+	temp = std::find(permutations.begin(), permutations.end(), b);
+	permutations.erase(temp);
+	temp = std::find(permutations.begin(), permutations.end(), c);
+	permutations.erase(temp);
+	temp = std::find(permutations.begin(), permutations.end(), d);
+	permutations.erase(temp);
+	temp = std::find(permutations.begin(), permutations.end(), e);
+	permutations.erase(temp);
+	temp = std::find(permutations.begin(), permutations.end(), f);
+	permutations.erase(temp);
+	temp = std::find(permutations.begin(), permutations.end(), g);
+	permutations.erase(temp);
+	temp = std::find(permutations.begin(), permutations.end(), h);
+	permutations.erase(temp);*/
+
+	//std::vector<sf::Vector2i> path = A_starSearch(func, sf::Vector2i(9, 0), sf::Vector2i(5, 7));
+
+	/*for (auto& permut : permutations) {
+		std::cout << permut.first << " and " << permut.second << ": ";
+		std::vector<sf::Vector2i> path = A_starSearch(func, permut.first, permut.second);
+		std::cout << "done\n";
+	}*/
+
+	// Test it for all permutations
+	// Create permutations
 
 	/*
 		"..........",
@@ -112,7 +168,8 @@ int main()
 	*/
 
 
-	std::list<sf::Vector2i> path = A_starSearch(func, sf::Vector2i(2, 0), sf::Vector2i(2, 8));
+	//std::vector<sf::Vector2i> path = A_starSearch(func, sf::Vector2i(2, 0), sf::Vector2i(2, 8));
+	/*
 	for (auto& e : path)
 		temp_map.arr[e.y][e.x] = '+';
 
@@ -127,9 +184,7 @@ int main()
 
 		std::cout << "\n";
 	}
-
-
-
+	*/
 	GameManager::getManager().update();
 
     return 0;

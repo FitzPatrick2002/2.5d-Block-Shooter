@@ -15,6 +15,7 @@ import Player;
 import TextureManager;
 import Bullet;
 import Enemy;
+import ThreadPool;
 
 import EnemiesManager;
 
@@ -34,8 +35,6 @@ struct HashListIterator {
 export class Combat : public GameState {
 private:
 
-	//sf::RenderWindow* window;
-
 	TextureManager textureManager;
 
 	// Objects on the map
@@ -52,9 +51,16 @@ private:
 	// Temporary testing the 3d objects
 	GameMap map;
 
+	// Lines array:
+	sf::VertexArray lines_buffer;
+	sf::VertexArray quads_buffer;
+
 	sf::Vector2f playerViewSize;
 	sf::View playerView;
 	float playerViewScrollVal;
+
+	// Multithreading
+	ThreadPool threadPool;
 
 public:
 

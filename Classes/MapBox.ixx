@@ -45,4 +45,7 @@ public:
 
 	void render(sf::RenderWindow* w);
 
+	void batchLines(sf::VertexArray& arr);
+	void batchQuads(sf::VertexArray& arr);
+
 }; 

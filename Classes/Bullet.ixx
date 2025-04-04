@@ -21,6 +21,8 @@ public:
 
 	void init(sf::Vector3f pos, sf::Vector2f mousePos);
 
+	void init(sf::Vector2f init_pos, sf::Vector2f player_pos);
+
 	void moveBullet(sf::Time& deltaTime);
 
 	void updatePositions();

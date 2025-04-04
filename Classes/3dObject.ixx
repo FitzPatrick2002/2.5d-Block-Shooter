@@ -30,4 +30,6 @@ public:
 	sf::Vector3f getWorldPos() const;
 
 	void render(sf::RenderWindow* w);
+
+	void batchToArray(sf::VertexArray& arr);
 };

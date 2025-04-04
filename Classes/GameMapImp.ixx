@@ -22,12 +22,12 @@ import <algorithm>;
 namespace fs = std::filesystem;
 
 GameMap::GameMap() {
-	mapPool.start();
+	//mapPool.start();
 }
 
 GameMap::~GameMap() {
 
-	this->mapPool.stop();
+	//this->mapPool.stop();
 }
 
 void GameMap::init(int w, int h, TextureManager* tM) {
@@ -175,6 +175,31 @@ void GameMap::iterateOverWidth(int y, int width, sf::Vector3f playerPos, sf::Vec
 	this->groundForDisplay.insert(this->groundForDisplay.end(), localBoxes.begin(), localBoxes.end());
 }
 
+// Mouse position in tiles pls
+void GameMap::setFOVraycasting(sf::Vector2f player_pos, sf::Vector2f mouse_position) {
+	sf::Vector2f delta_pos = mouse_position - player_pos;
+
+	float cone_angle = atan2(delta_pos.y, delta_pos.x);
+	float delta_angle = cone_angle / 100.0f;
+	float delta_r = 0.1f;
+	sf::Vector2f versor = makeVersor(delta_pos);
+
+	for (int i = -49; i < 50; i++) {
+		float r = 0;
+		float current_angle = cone_angle + delta_angle;
+		sf::Vector2f versor = rotateVector(versor, current_angle);
+		while (r < 20.0f) {
+			sf::Vector2f current_pos = r * versor;
+			if (this->checkIfTileWalkable(current_pos)) {
+
+			}
+
+			r += delta_r;
+		}
+	}
+
+}
+
 // 1. Calc vector from player screen pos (0,0) to mouse position relative to the center of the screen
 // 2. Calc vector from box to the players position (in the second variany just get the screen position of the box)
 void GameMap::setPlayerFOV(sf::Vector3f playerPos, sf::Vector2f mousePos) {
@@ -203,9 +228,10 @@ void GameMap::setPlayerFOV(sf::Vector3f playerPos, sf::Vector2f mousePos) {
 	for (auto& ptr : threads) {
 		ptr->join();
 	}*/
-	std::ranges::for_each(this->ground, [&, this](MapBox& box) mutable {
+
+	std::ranges::for_each(this->ground, [&, this](MapBox& box) mutable { // ------------------------------------- !!! Uncomment this. It's the fov
 		sf::Vector3f displacement;
-		displacement = box.getWorldPos() + (-1.0f) * playerPos;
+		displacement = box.getWorldPos() - playerPos;
 		float r = vectorLength(displacement);
 
 		if (r < 25.0f) {
@@ -266,7 +292,35 @@ void GameMap::setRenderOrder() {
 
 }
 
+// Improved rendering by batching
+
+void GameMap::batchBoxes(sf::VertexArray& lines_array, sf::VertexArray &quads_array) {
+
+	auto comp = [](const MapBox& a, const MapBox& b) -> bool {
+		sf::Vector3f va = a.getWorldPos();
+		sf::Vector3f vb = b.getWorldPos();
+
+		float sum_a = va.x + va.y - va.z; // + va.x;
+		float sum_b = vb.x + vb.y - vb.z; // + vb.x;
+
+		return sum_a < sum_b;
+		};
+
+	std::vector<MapBox> sorted_boxes;
+	sorted_boxes = this->ground;
+
+	std::ranges::sort(sorted_boxes, comp);
+
+	for (auto& b : sorted_boxes) {
+		b.batchLines(lines_array);
+		b.batchQuads(quads_array);
+	}
+}
+
 void GameMap::render(sf::RenderWindow* w) {
+
+	//for (auto& e : this->ground)
+	//	e.render(w);
 
 	for (auto& e : this->groundForDisplay)
 		e.render(w);

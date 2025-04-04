@@ -36,7 +36,7 @@ void Enemy::performCommand() {
 
 		if (current_command->isFinished()) {
 			// std::cout << "command finished" << static_cast<int>(current_command->getType()) << "\n";
-
+			std::cout << "queuel length: " << commands_queue.size() << "\n";
 			commands_queue.pop();
 			if (not commands_queue.empty()) {
 
@@ -65,6 +65,10 @@ void Enemy::performCommand() {
 		case CommandType::Wait:
 
 			(*(std::dynamic_pointer_cast<Wait>(current_command)))();
+			break;
+		case CommandType::Shoot:
+
+			(*(std::dynamic_pointer_cast<Shoot>(current_command)))(this->getWorld_XY());
 			break;
 		default:
 			std::cout << "Unknown command for an Enemy class, code: " << static_cast<int>(current_command->getType()) << "\n";
@@ -105,6 +109,12 @@ void Enemy::queueCommand(BasicCommand* command) {
 		this->current_command = this->commands_queue.front();
 
 		break;
+	case CommandType::Shoot:
+
+		this->commands_queue.push(std::make_shared<Shoot>(dynamic_cast<Shoot*>(command)->getBulletsList(), dynamic_cast<Shoot*>(command)->getPlayerPos()));
+		this->current_command = this->commands_queue.front();
+
+		break;
 	default:
 		std::cerr << "An unknown type of command has been queued and so it wasn't queued for the enemy list of commands\n";
 		break;
@@ -119,6 +129,8 @@ void Enemy::updatePosition(sf::Time deltaTime) {
 }
 
 void Enemy::update(sf::Time deltaTime) {
+
+	//std::cout << "Commadns of " << this << " amount: " << this->commands_queue.size() << "\n";
 
 	this->performCommand();
 
@@ -139,6 +151,10 @@ void Enemy::setStatus(EnemyState state) {
 
 void Enemy::clearCommandsQueue() {
 	this->commands_queue = std::queue<std::shared_ptr<BasicCommand>>();
+	this->current_command = nullptr;
+
+	Stop_movement stop;
+	this->queueCommand(&stop);
 }
 
 // Getters

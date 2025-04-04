@@ -23,6 +23,9 @@ sf::Vector3f MapBox::getWorldPos() const {
 	return this->worldPos;
 }
 
+// Old .init() that worked for sf::Linestrip for the outline. I'll be changing this to sf::Lines for batching purposes/
+/*
+
 void MapBox::init(sf::Vector3f wPos, sf::Vector3f d) {
 	this->worldPos = wPos;
 
@@ -30,7 +33,7 @@ void MapBox::init(sf::Vector3f wPos, sf::Vector3f d) {
 
 	outline.resize(6);
 
-	std::vector<sf::Vector3f> outlineQuad = {
+	std::vector<sf::Vector3f> outlineQuad = { // Preapre them so that they are used as aline and not a lines trip
 		{0.0f, 0.0f, 0.0f},
 		{d.x, 0.0f, 0.0f},
 		{d.x, d.y, 0.0f},
@@ -63,6 +66,128 @@ void MapBox::init(sf::Vector3f wPos, sf::Vector3f d) {
 	outlineQuad[0] = sf::Vector3f(d.x, d.y, 0.0f);
 	outlineQuad[1] = sf::Vector3f(d.x, d.y, d.z);
 	outline[5].reset(sf::LinesStrip, this->worldPos, outlineQuad);
+
+	this->walls.resize(3);
+
+	std::vector<sf::Vector3f> fillingPts;
+	fillingPts.resize(4);
+
+	fillingPts[0] = { 0.0f, d.y, 0.0f }; // Left
+	fillingPts[1] = { 0.0f, d.y, d.z };
+	fillingPts[2] = { d.x, d.y, d.z };
+	fillingPts[3] = { d.x, d.y, 0.0f };
+
+	for (auto& e : fillingPts) {
+		e.x *= 0.99f;
+		//e.y *= 0.95f;
+		e.z *= 0.99f;
+	}
+
+	this->walls[0].reset(sf::Quads, this->worldPos, fillingPts);
+
+	fillingPts[0] = {0.0f, d.y, d.z }; // Top
+	fillingPts[1] = { d.x, d.y, d.z };
+	fillingPts[2] = { d.x, 0.0f, d.z };
+	fillingPts[3] = { 0.0f, 0.0f, d.z };
+
+	for (auto& e : fillingPts) {
+		e.x *= 0.99f;
+		e.y *= 0.99f;
+		//e.z *= 0.99f;
+	}
+
+	this->walls[1].reset(sf::Quads, this->worldPos, fillingPts);
+
+	fillingPts[0] = { d.x, d.y, d.z }; // Right
+	fillingPts[1] = { d.x, 0.0f, d.z };
+	fillingPts[2] = { d.x, 0.0f, 0.0f };
+	fillingPts[3] = { d.x, d.y, 0.0f };
+
+	for (auto& e : fillingPts) {
+		//e.x *= 0.99f;
+		e.y *= 0.99f;
+		e.z *= 0.99f;
+	}
+
+	this->walls[2].reset(sf::Quads, this->worldPos, fillingPts);
+
+
+}
+*/
+
+void MapBox::init(sf::Vector3f wPos, sf::Vector3f d) {
+	this->worldPos = wPos;
+
+	this->dims = d;
+
+
+	outline.resize(1);
+
+	std::vector<sf::Vector3f> outlineQuad = { // Preapre them so that they are used as aline and not a lines trip
+		{0.0f, 0.0f, 0.0f}, // Bottom rectangle
+		{d.x, 0.0f, 0.0f},
+
+		{d.x, 0.0f, 0.0f},
+		{d.x, d.y, 0.0f},
+
+		{d.x, d.y, 0.0f},
+		{0.0f, d.y, 0.0f},
+
+		{0.0f, d.y, 0.0f},
+		{0.0f, 0.0f, 0.0f},
+
+		{0.0f, 0.0f, 0.0f}, // Sides
+		{0.0f, 0.0f, d.z},
+
+		{d.x, 0.0f, 0.0f}, // Sides
+		{d.x, 0.0f, d.z},
+
+		{0.0f, d.y, 0.0f}, // Sides
+		{0.0f, d.y, d.z},
+
+		{d.x, d.y, 0.0f}, // Sides
+		{d.x, d.y, d.z},
+
+		{0.0f, 0.0f, d.z}, // Top rectangle
+		{d.x, 0.0f, d.z},
+
+		{d.x, 0.0f, d.z},
+		{d.x, d.y, d.z},
+
+		{d.x, d.y, d.z},
+		{0.0f, d.y, d.z},
+
+		{0.0f, d.y, d.z},
+		{0.0f, 0.0f, d.z},
+
+	};
+	outline[0].reset(sf::Lines, this->worldPos, outlineQuad);
+
+	/*
+	for (auto& e : outlineQuad)
+		e.z = d.z;
+	outline[1].reset(sf::Lines, this->worldPos, outlineQuad);
+
+	outlineQuad.clear();
+
+	outlineQuad.resize(2);
+
+	outlineQuad[0] = sf::Vector3f(0.0f, 0.0f, 0.0f);
+	outlineQuad[1] = sf::Vector3f(0.0f, 0.0f, d.z);
+	outline[2].reset(sf::Lines, this->worldPos, outlineQuad);
+
+	outlineQuad[0] = sf::Vector3f(d.x, 0.0f, 0.0f);
+	outlineQuad[1] = sf::Vector3f(d.x, 0.0f, d.z);
+	outline[3].reset(sf::Lines, this->worldPos, outlineQuad);
+
+	outlineQuad[0] = sf::Vector3f(0.0f, d.y, 0.0f);
+	outlineQuad[1] = sf::Vector3f(0.0f, d.y, d.z);
+	outline[4].reset(sf::Lines, this->worldPos, outlineQuad);
+
+	outlineQuad[0] = sf::Vector3f(d.x, d.y, 0.0f);
+	outlineQuad[1] = sf::Vector3f(d.x, d.y, d.z);
+	outline[5].reset(sf::Lines, this->worldPos, outlineQuad);
+	*/
 
 	this->walls.resize(3);
 
@@ -140,4 +265,16 @@ void MapBox::render(sf::RenderWindow* w) {
 
 sf::Vector3f MapBox::getDimensions() {
 	return this->dims;
+}
+
+void MapBox:: batchLines(sf::VertexArray& arr) {
+	for (int i = 0; i < this->outline.size(); i++) {
+		this->outline[i].batchToArray(arr);
+	}
+}
+
+void MapBox::batchQuads(sf::VertexArray& arr) {
+	for (int i = 0; i < this->walls.size(); i++) {
+		this->walls[i].batchToArray(arr);
+	}
 }

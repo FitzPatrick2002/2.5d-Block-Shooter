@@ -5,13 +5,21 @@ import EnemyCommands;
 
 import linAlg;
 import GameMap;
+import Bullet;
 
 import Player;
+
+import <thread>;
+import <mutex>;
+import <list>;
 
 export class EnemiesManager {
 private:
 	GameMap* gameMap_handle;
 	Player* player_handle;
+
+	std::list<Bullet>* bullets_list_handle;
+	std::mutex bullets_mutex;
 
 private:
 
@@ -22,7 +30,7 @@ public:
 	EnemiesManager();
 	~EnemiesManager();
 
-	void init(GameMap* gameMap_handle, Player* p);
+	void init(GameMap* gameMap_handle, Player* p, std::list<Bullet>* blh);
 
 	// For starters:
 	// 1. Check which command is being performed

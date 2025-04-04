@@ -67,3 +67,9 @@ void Object_3d::render(sf::RenderWindow* w) {
 	
 	w->draw(sPoints);
 }
+
+void Object_3d::batchToArray(sf::VertexArray& arr) {
+	
+	for (int i = 0; i < this->wPoints.size(); i++)
+		arr.append(this->sPoints[i]);
+}

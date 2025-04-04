@@ -310,6 +310,23 @@ export sf::Vector2f random_V2f(float low_x, float high_x, float low_y, float hig
 	return outcome;
 }
 
+export sf::Vector2f rotateVector(sf::Vector2f vec, float angle) {
+	sf::Vector2f outcome;
+
+	outcome.x = cos(angle) * vec.x - sin(angle) * vec.y;
+	outcome.y = sin(angle) * vec.x + sin(angle) * vec.y;
+
+	return outcome;
+}
+
+/*
+struct NodeDataHash {
+	size_t operator()(const NodeData& data) const {
+		return std::hash<int>()(data.position.x) ^ std::hash<int>()(data.position.y);
+	}
+};
+*/
+
 struct NodeData {
 	sf::Vector2i position;
 	sf::Vector2i previous;
@@ -331,22 +348,25 @@ struct NodeData {
 	}
 };
 
-/*
-struct NodeDataHash {
-	size_t operator()(const NodeData& data) const {
-		return std::hash<int>()(data.position.x) ^ std::hash<int>()(data.position.y);
-	}
-};
-*/
-
 struct NodeDataComparator {
 	bool operator()(const NodeData& a, const NodeData& b) const {
 		if (a.getTotalCost() != b.getTotalCost()) {
 			return a.getTotalCost() < b.getTotalCost();
 		}
-		else {
+		if(a.G_cost != b.G_cost) {
 			return a.G_cost < b.G_cost;
 		}
+		if (a.H_cost != b.H_cost) {
+			return a.H_cost < b.H_cost;
+		}
+		if (a.position.x != b.position.x) {
+			return a.position.x < b.position.x;
+		}
+		if (a.position.y != b.position.y) {
+			return a.position.y < b.position.y;
+		}
+		
+		return false;
 	}
 };
 
@@ -357,7 +377,7 @@ struct NodeDataComparator {
 struct ExplorationContainer {
 	//std::set<NodeData, NodeDataComparator> queue;
 	std::unordered_map <sf::Vector2i, NodeData, Vector2iHash> map;
-	std::multiset<NodeData, NodeDataComparator> set; // Actually I will need to store the position in the set. Because 
+	std::set<NodeData, NodeDataComparator> set; // Actually I will need to store the position in the set. Because 
 
 	// !!!
 
@@ -372,7 +392,10 @@ struct ExplorationContainer {
 
 		if (map.find(position) == map.end()) {
 			map[position] = data;
-			set.insert(data);
+
+			if (not set.insert(data).second) {
+				std::cout << "asdada\n";
+			}
 		}
 		else {
 			NodeData old_data = map[position];
@@ -522,7 +545,12 @@ struct ExplorationContainer {
 
 //bool checkIfTileWalkable(sf::Vector2f pos);
 
-export std::list<sf::Vector2i> A_starSearch(std::function<bool(sf::Vector2i)>& isWalkable, sf::Vector2i start, sf::Vector2i end) {
+/*
+	ERRORS: 
+	- Map contains key to element that doesnt exist in the set. 
+*/
+
+export std::vector<sf::Vector2i> A_starSearch(std::function<bool(sf::Vector2i)>& isWalkable, sf::Vector2i start, sf::Vector2i end) {
 	ExplorationContainer for_exploration;
 	std::unordered_map<sf::Vector2i, NodeData, Vector2iHash> already_visited;
 
@@ -570,22 +598,24 @@ export std::list<sf::Vector2i> A_starSearch(std::function<bool(sf::Vector2i)>& i
 	NodeData current_data;
 
 	current_position = start;
-	current_data.set(start, start, 0, 0);
+	current_data.set(start, start, calc_H_cost(start, end), 0);
 
 	for_exploration.insert(current_position, current_data);
 
 	while (current_position != end) {
+
 		// Get the most promising node from the front of the queue. 
 		// Delete it from the queue and mark as already explored
 
 		current_position = for_exploration.getFrontPosition();
+
 		current_data = for_exploration.getFrontData();
-
-		debugging[current_position.y][current_position.x] = sf::Vector3i(current_data.G_cost, current_data.getTotalCost(), current_data.H_cost);
-
 		//std::cout << "Current position: " << current_position << "\n";
+		/*debugging[current_position.y][current_position.x] = sf::Vector3i(current_data.G_cost, current_data.getTotalCost(), current_data.H_cost);
 
-		/*for (int i = 0; i < 10; i++) {
+		std::cout << "Current position: " << current_position << "\n";
+
+		for (int i = 0; i < 10; i++) {
 			for (int j = 0; j < 10; j++) {
 				std::cout << debugging[i][j] << " ";
 			}
@@ -593,6 +623,7 @@ export std::list<sf::Vector2i> A_starSearch(std::function<bool(sf::Vector2i)>& i
 		}*/
 
 		for_exploration.erase(current_position);
+
 		already_visited[current_position] = current_data;
 
 		// Push the neighbours of the current node to the exploration queue
@@ -608,20 +639,69 @@ export std::list<sf::Vector2i> A_starSearch(std::function<bool(sf::Vector2i)>& i
 				neighbour_data.H_cost = calc_H_cost(neighbour_position, end);
 
 				for_exploration.insert(neighbour_position, neighbour_data);
+				
 			}
 		}
 
+		/*
+		std::cout << "map: ";
+		for (auto& e : for_exploration.map)
+			std::cout << e.first << " ";
+
+		std::cout << "\n\nset: ";
+
+		for (auto& e : for_exploration.set)
+			std::cout << e.position << " ";
+
+		std::cout << "\n\n";
+
+		std::cout << "chosen coords: " << start << " " << end << "\n";
 		std::cout << "Sizes: " << for_exploration.map.size() << " " << for_exploration.set.size() << "\n";
+		
+		/*
+		for (auto m : for_exploration.map) {
+			if (for_exploration.set.find(m.second) == for_exploration.set.end()) {
+				std::cerr << "IS in map but not in set: " << m.first << "\n";
+			}
+		}
+
+		for (auto s : for_exploration.set) {
+			if (for_exploration.map.find(s.position) == for_exploration.map.end()) {
+				std::cout << "Error at: " << s.position << "\n";// Error at (7,4)
+			}
+		}*/
+
+		if (for_exploration.map.size() != for_exploration.set.size()) {
+			std::cout << "Error here\n";
+		}
 
 	}
 
-	std::list<sf::Vector2i> path;
+	std::vector<sf::Vector2i> path;
 
 	sf::Vector2i current = end;
 	while (current != start) {
-		path.push_front(current);
+		path.push_back(current);
 		current = already_visited[current].previous;
 	}
 
+	std::reverse(path.begin(), path.end());
+
 	return path;
+}
+
+export sf::Vector2i getRandomWalkable(std::function<bool(sf::Vector2i)> isWalkable, sf::Vector2i x_range, sf::Vector2i y_range) {
+	sf::Vector2i pos = random_V2i(x_range.x, x_range.y, y_range.x, y_range.y);
+
+	int i = 0;
+	while (not isWalkable(pos) and i < 100) {
+		pos = random_V2i(x_range.x, x_range.y, y_range.x, y_range.y);
+		i++;
+	}
+
+	if (i < 100) {
+		return pos;
+	}
+
+	std::cerr << "Can't find random walkable position";
 }

@@ -8,6 +8,7 @@ import GameMap;
 import <chrono>;
 
 Combat::Combat(sf::RenderWindow* win) : GameState(win) {
+	this->threadPool.start();
 	this->loadTextures();
 
 	this->initialiseMap();
@@ -21,6 +22,7 @@ Combat::Combat(sf::RenderWindow* win) : GameState(win) {
 Combat::~Combat() {
 
 	this->window->getDefaultView();
+	this->threadPool.stop();
 }
 
 void Combat::initialiseMap() {
@@ -33,7 +35,12 @@ void Combat::initialiseMap() {
 	this->map.loadFromFile(map_to_load);
 	this->map.initChunks();
 
-	//this->map.init(50, 50, &this->textureManager);
+	//this->map.init(50, 50, &this->textureManager); // Leave this as is
+
+	this->lines_buffer.setPrimitiveType(sf::Lines);
+	this->quads_buffer.setPrimitiveType(sf::Quads);
+
+	this->map.batchBoxes(lines_buffer, quads_buffer);
 
 }
 
@@ -70,7 +77,7 @@ void Combat::initEnemies() {
 	//	this->enemies[V3_to_2i(position)].queueCommand(&stop);
 	}
 
-	this->enemies_manager.init(&this->map, &this->player);
+	this->enemies_manager.init(&this->map, &this->player, &this->bullets);
 }
 
 void Combat::updatePlayerFOV() {
@@ -268,6 +275,7 @@ void Combat::updateEnemies(sf::Time deltaTime) {
 	std::vector<std::tuple<sf::Vector2i, sf::Vector2i, Enemy*>> positions_for_change;
 
 	for (auto& e : enemies) { 
+		
 		sf::Vector2i previous_position = e.first; // Compare the current (int) position with the one after updating the position, if these positions differ we need to store this element under in different bucket
 		e.second.update(deltaTime); 
 		sf::Vector2i current_position = V3_to_2i(e.second.getWorldPos());
@@ -276,8 +284,16 @@ void Combat::updateEnemies(sf::Time deltaTime) {
 		if (current_position != previous_position) {
 			positions_for_change.push_back({ previous_position, current_position, &e.second });
 		}
+
+		this->threadPool.queueJob([&, this]() {
+			this->enemies_manager.updateEnemy(e.second);
+			});
+
+		//while (this->threadPool.busy()) {
+			//std::cout << "Waiting\n";
+		//}
+		//this->enemies_manager.updateEnemy(e.second);
 		
-		this->enemies_manager.updateEnemy(e.second);
 	}
 
 	// Iterate over all the enemeis that need rehashing
@@ -299,7 +315,7 @@ void Combat::updateEnemies(sf::Time deltaTime) {
 // User input, Updating positions, physics, etc.
 void Combat::update(sf::Time deltaTime) {
 
-	//std::cout << "Fps: " << 1 / float(deltaTime.asSeconds()) << "\n";
+	std::cout << "Fps: " << 1 / float(deltaTime.asSeconds()) << "\n";
 
 	//std::cout << this->player.getWorldPos().x<< ", "<<this->player.getWorldPos().y << "\n";
 	this->handleUserInput();
@@ -333,6 +349,9 @@ void Combat::render() {
 	this->window->clear();
 
 	this->map.render(this->window);
+	//this->window->draw(this->quads_buffer);
+	//this->window->draw(this->lines_buffer);
+	
 
 	for (auto& e : bullets)
 		e.render(window);

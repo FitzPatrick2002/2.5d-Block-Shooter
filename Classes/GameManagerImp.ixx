@@ -19,7 +19,7 @@ GameManager::~GameManager() {
 void GameManager::initGameOnStart() {
 
 	this->mainWindow = new sf::RenderWindow(sf::VideoMode(1024, 768), "2.5D Shooter"); //, sf::Style::Default, settings
-	this->mainWindow->setFramerateLimit(60);
+	//this->mainWindow->setFramerateLimit(60);
 
 	this->createNewState(GameStateEnum::MainMenu, false);
 

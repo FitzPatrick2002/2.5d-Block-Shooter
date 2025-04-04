@@ -46,6 +46,18 @@ void Bullet::init(sf::Vector3f pos, sf::Vector2f mousePos) {
 	this->bulletModel.init(this->worldPos, dims);
 }
 
+void Bullet::init(sf::Vector2f init_pos, sf::Vector2f player_pos) {
+	this->worldPos = sf::Vector3f(init_pos.x, init_pos.y, 1.0f);
+	float v_x = player_pos.x - init_pos.x;
+	float v_y = player_pos.y - init_pos.y;
+
+	this->setVelVersor(sf::Vector3f(v_x, v_y, 0.0f));
+	this->setVelMag(5.0f);
+
+	sf::Vector3f dims(0.1f, 0.1f, 0.1f);
+	this->bulletModel.init(this->worldPos, dims);
+}
+
 void Bullet::moveBullet(sf::Time& deltaTime) {
 	worldPos = worldPos + velMag * deltaTime.asSeconds() * velVersor;
 }

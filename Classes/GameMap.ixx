@@ -38,7 +38,7 @@ private:
 
 	TextureManager* textureManager;
 
-	ThreadPool mapPool;
+	//ThreadPool mapPool;
 
 	sf::Vector2i chunks_amount;
 	sf::Vector2i chunk_size;
@@ -66,6 +66,8 @@ public:
 
 	// FOV and drawing
 
+	void setFOVraycasting(sf::Vector2f player_pos, sf::Vector2f mouse_position);
+
 	void setPlayerFOV(sf::Vector3f playerPos, sf::Vector2f absoluteMousePosition);
 
 	void iterateOverWidth(int y, int width, sf::Vector3f playerPos, sf::Vector2f mousePos);
@@ -73,6 +75,10 @@ public:
 	void setRenderOrder();
 
 	void render(sf::RenderWindow* w);
+
+	// Improved rendering by batching
+
+	void batchBoxes(sf::VertexArray& lines_arr, sf::VertexArray& quads_array);
 
 	// Checkers
 
