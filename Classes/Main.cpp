@@ -1,16 +1,49 @@
 import <iostream>;
 import <SFML/Graphics.hpp>;
 
+import ThreadPool;
 import GameManager;
 import linAlg;
 import <functional>;
 
 // TO DO:
-// 1. Make enemies visible (DONE)
-// 2. Store them in a list and update them (use the movement manager) (DONE) -> not list an unordered_map keys - positions
-// 3. Detect collisions between bullets and enemies (DONE
-// 4. Add AI for enemies -> EnemiesManager -> for now very simple just patrolling, no states
-// 5. Make the EnemyManager run on threads / Update enemies using threads -> their update functions may get lengthy?
+// 1. FOV as ray casting / some other clever algorithm
+// 2. Make as many things as possible run on threads  // --->>> BUT FIRST GET FUCKING EDUCATED ON HOW THREADS WORK
+//		- Enemies updates
+//		- Collision checking maybe as well?
+//		- FOV on thread
+//	Different concept:
+//		- Split the program in two parts
+//		- First does some changes but deletion and adding stuff is stored in temporary data structures (lists, vectors, etc)
+//			- This part is run on threads to make it faster
+//		- Then there is the part where all of these changes are included (like removing bullets, removing enemies after they are killed, etc.)
+// 3. Optimise stuff by the fucking batching. 
+// 4. Make FOV work for batched map
+// 5. Make menu prettier, add background screen, blurred image of the gameplay, move slowly from side to side, fade and then unfade into a different picture.
+// 6. Mechanic of being killed by enemies
+// 7. Saving enemies into the map file (amount to spawn and places where they are to be spawned)
+// 8. Something that needs to be doen but I forgot
+// . . . 
+// 21. Fix the resizing of the window
+
+// Next time when making a game:
+// 1. UML diagram
+// 2. Have Managers do the job instead of specific objects
+// 3. Updating the positions of objects -> physics, movement, collisions managers
+//		Other idea is to have just a function in the main state of the game (in this one 'Combat' state) that will do all that for each type?
+//		So, entities like Enemy, Player, Bullet, etc. only store data, they do not operate on it (not extensively)
+// 4. Split program into very small subprograms that can be run int the 'cleanroom' of some sort
+//		ex. A* takes a function that checks both if tile is wlakable or not
+//		ex. Raycasting reaised in the exact same manner -> will work for different maps and condition all it needs is the function
+//		ex. collision checking -> more tricky because it is sort of dependent on how we actaully check the collision (container type)
+//		ex. AI Hard to generalise -> more like I duhnno, I really dunno...
+
+// What I'm trying to achieve is to be able to add elements to the program in a ery simple manner 
+// For example when I want a new enemy I just 
+
+
+// Other notes:
+// Simpler fov -> map is always visible just cast rays to enemies only (same as enemies do with the player)
 
 import <queue>;
 import <thread>;
@@ -185,7 +218,12 @@ int main()
 		std::cout << "\n";
 	}
 	*/
+
+	ThreadPool::accessPool().start();
+
 	GameManager::getManager().update();
+
+	ThreadPool::accessPool().shutdown();
 
     return 0;
 }

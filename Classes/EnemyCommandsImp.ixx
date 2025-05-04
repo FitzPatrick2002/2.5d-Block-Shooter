@@ -181,6 +181,7 @@ void Shoot::operator()(sf::Vector2f enemy_pos) {
 	
 	{
 		std::lock_guard<std::mutex> mt(bullets_mutex_temp);
+		
 		this->bullets_list_handle->push_back(b);
 	}
 	this->finished = true;

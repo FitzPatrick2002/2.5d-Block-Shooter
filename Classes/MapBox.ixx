@@ -18,7 +18,7 @@ private:
 	sf::Color outlineColor;
 	sf::Color fillingColor;
 
-	sf::Vector3f worldPos;
+	//sf::Vector3f worldPos;
 
 	void setWorldPos(sf::Vector3f p) {}
 
@@ -33,7 +33,7 @@ public:
 
 	void setWorldPosition(sf::Vector3f newPos);
 
-	sf::Vector3f getWorldPos() const;
+	//sf::Vector3f getWorldPos() const;
 
 	sf::Vector3f getDimensions();
 

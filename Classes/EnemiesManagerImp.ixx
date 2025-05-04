@@ -7,6 +7,7 @@ import EnemyCommands;
 import linAlg;
 import Bullet;
 
+import <functional>;
 import <list>;
 import <iostream>;
 
@@ -17,7 +18,7 @@ bool EnemiesManager::checkIfEnemySeesPlayer(Enemy& e) {
 	sf::Vector2f player_pos = player_handle->getWorld_XY();
 	float dist = vectorLength(player_pos - enemy_pos);
 
-	//std::cout << "Plauyer pos: " << player_pos << "\n";
+	//std::cout << "Player pos: " << player_pos << "\n";
 
 	// Cast the ray
 	if (dist < e.getViewRange()) {

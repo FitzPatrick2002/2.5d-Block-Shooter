@@ -18,6 +18,7 @@ import <string>;
 import <sstream>;
 import <unordered_map>;
 import <algorithm>;
+import <set>;
 
 namespace fs = std::filesystem;
 
@@ -33,8 +34,6 @@ GameMap::~GameMap() {
 void GameMap::init(int w, int h, TextureManager* tM) {
 	this->width = w;
 	this->height = h;
-
-	this->dfs_search.setMap(this);
 
 	this->textureManager = tM;
 
@@ -147,6 +146,7 @@ void GameMap::generateMap() {
 
 }
 
+/*
 std::mutex mu;
 void GameMap::iterateOverWidth(int y, int width, sf::Vector3f playerPos, sf::Vector2f mousePos) {
 	std::vector<MapBox> localBoxes;
@@ -174,7 +174,9 @@ void GameMap::iterateOverWidth(int y, int width, sf::Vector3f playerPos, sf::Vec
 	std::lock_guard<std::mutex> lock(mu);
 	this->groundForDisplay.insert(this->groundForDisplay.end(), localBoxes.begin(), localBoxes.end());
 }
+*/
 
+/*
 // Mouse position in tiles pls
 void GameMap::setFOVraycasting(sf::Vector2f player_pos, sf::Vector2f mouse_position) {
 	sf::Vector2f delta_pos = mouse_position - player_pos;
@@ -184,26 +186,33 @@ void GameMap::setFOVraycasting(sf::Vector2f player_pos, sf::Vector2f mouse_posit
 	float delta_r = 0.1f;
 	sf::Vector2f versor = makeVersor(delta_pos);
 
+	std::set<sf::Vector3f> visiblePositions;
+
 	for (int i = -49; i < 50; i++) {
 		float r = 0;
-		float current_angle = cone_angle + delta_angle;
-		sf::Vector2f versor = rotateVector(versor, current_angle);
-		while (r < 20.0f) {
-			sf::Vector2f current_pos = r * versor;
-			if (this->checkIfTileWalkable(current_pos)) {
+		float current_angle = cone_angle + i*delta_angle;
+		sf::Vector2f versor_temp = rotateVector(versor, current_angle);
 
+		// Put these whiles to the thread I mean queue 100 calls to the threadPool
+		while (r < 20.0f) {
+			sf::Vector2f current_pos = r * versor_temp;
+			if (this->checkIfTileWalkable(current_pos)) {
+				
+				this->groundForDisplayRayCasting.insert(current_pos);
 			}
+			else
+				break;
 
 			r += delta_r;
 		}
 	}
-
+	
 }
+*/
 
 // 1. Calc vector from player screen pos (0,0) to mouse position relative to the center of the screen
 // 2. Calc vector from box to the players position (in the second variany just get the screen position of the box)
 void GameMap::setPlayerFOV(sf::Vector3f playerPos, sf::Vector2f mousePos) {
-	this->groundForDisplay.clear();
 
 	/*for (int i = 0; i < this->height; i++) {
 		//this->mapPool.queueJob(&GameMap::iterateOverWidth, i, this->width, playerPos, mousePos);
@@ -229,6 +238,9 @@ void GameMap::setPlayerFOV(sf::Vector3f playerPos, sf::Vector2f mousePos) {
 		ptr->join();
 	}*/
 
+	// Basic option
+	/*
+	 this->groundForDisplay.clear();
 	std::ranges::for_each(this->ground, [&, this](MapBox& box) mutable { // ------------------------------------- !!! Uncomment this. It's the fov
 		sf::Vector3f displacement;
 		displacement = box.getWorldPos() - playerPos;
@@ -243,7 +255,58 @@ void GameMap::setPlayerFOV(sf::Vector3f playerPos, sf::Vector2f mousePos) {
 		}
 
 		});
+	*/
+	// End of basic option
 
+	// Raycasting option
+	//this->groundForDisplayRayCasting.clear();
+	//this->setFOVraycasting(sf::Vector2f(playerPos.x, playerPos.y), mousePos);
+
+	float theta = atan2(mousePos.y, mousePos.x);
+	std::cout << "Theta: " << theta << "\n";
+	float alpha = 3.14f / 4.0f;
+
+	// New bresenham raycasting
+	this->ground_to_display_s = Geometry::rayCastingBresenhamParallel(
+		[this](int x, int y) -> bool {return this->checkIfTileWalkable(sf::Vector2i(x, y)); }, width, height,
+		V3_to_2i(playerPos), 25.0f, theta, alpha);
+	
+}
+
+void GameMap::setRenderOrder() {
+	/*
+	auto comp = [](const MapBox& a, const MapBox& b) -> bool {
+		sf::Vector3f va = a.getWorldPos();
+		sf::Vector3f vb = b.getWorldPos();
+
+		float sum_a = va.x + va.y - va.z; // + va.x;
+		float sum_b = vb.x + vb.y - vb.z; // + vb.x;
+
+		return sum_a < sum_b;
+		};
+
+	std::ranges::sort(groundForDisplay, comp); // Why an error? And this works regrardless of underline?
+	*/
+
+	displayed_objects.clear();
+	displayed_objects.resize(0);
+	displayed_objects.resize(ground_to_display_s.size());
+
+	int i = 0;
+	for (auto & pos : ground_to_display_s) {
+		displayed_objects[i] = &(this->ground[pos.y * width + pos.x]);
+		i++;
+	}
+
+	auto comp_pts = [](const Entity* p1, const Entity* p2) {
+
+		float sum_1 = p1->getWorld_XY().x + p1->getWorld_XY().y; // -.z
+		float sum_2 = p2->getWorld_XY().x + p2->getWorld_XY().y; // -.z
+
+		return sum_1 < sum_2;
+		};
+
+	std::ranges::sort(this->displayed_objects, comp_pts);
 }
 
 bool GameMap::checkIfOnMap(sf::Vector2f pos) {
@@ -276,22 +339,6 @@ bool GameMap::checkIfTileWalkable(sf::Vector2i pos) {
 	return true;
 }
 
-void GameMap::setRenderOrder() {
-
-	auto comp = [](const MapBox& a, const MapBox& b) -> bool {
-		sf::Vector3f va = a.getWorldPos();
-		sf::Vector3f vb = b.getWorldPos();
-
-		float sum_a = va.x + va.y - va.z; // + va.x;
-		float sum_b = vb.x + vb.y - vb.z; // + vb.x;
-
-		return sum_a < sum_b;
-		};
-
-	std::ranges::sort(groundForDisplay, comp); // Why an error? And this works regrardless of underline?
-
-}
-
 // Improved rendering by batching
 
 void GameMap::batchBoxes(sf::VertexArray& lines_array, sf::VertexArray &quads_array) {
@@ -319,11 +366,34 @@ void GameMap::batchBoxes(sf::VertexArray& lines_array, sf::VertexArray &quads_ar
 
 void GameMap::render(sf::RenderWindow* w) {
 
+	
 	//for (auto& e : this->ground)
 	//	e.render(w);
 
+	// Basic render used with:
+	// void GameMap::setRenderOrder() {
+	// void GameMap::setPlayerFOV(sf::Vector3f playerPos, sf::Vector2f mousePos) {
+	
+	// Basic option
+	/*
 	for (auto& e : this->groundForDisplay)
 		e.render(w);
+	*/
+
+	/*
+	for (auto& e : this->ground_to_display_s)
+		this->ground[e.y * width + e.x].render(w);
+	*/
+
+	for (auto& e : this->displayed_objects) 
+		e->render(w);
+	
+
+	// rendering with the use of raycasting
+	//for (auto& pos : this->groundForDisplayRayCasting) {
+	//	this->ground[this->width * pos.y + pos.x].render(w);
+	//}
+
 }
 
 int GameMap::getHeight() {
@@ -351,8 +421,6 @@ MapBox GameMap::getTile(int i, int j) {
 
 void GameMap::loadFromFile(std::string file_name) {
 	std::ifstream map_file("Game\\Maps\\" + file_name + ".txt");
-
-	this->dfs_search.setMap(this);
 
 	auto read_width_height = [&, this]() {
 		std::regex params_regex("([A-Za-z ]+):\\s*(\\d+)");

@@ -1,5 +1,6 @@
 export module ThreadPool;
 
+import <future>;
 import <queue>;
 import <thread>;
 import <mutex>;
@@ -7,36 +8,44 @@ import <functional>;
 import <vector>;
 import <utility>;
 
+// Singleton
+
 export class ThreadPool {
 private:
+	mutable std::mutex mutex;
+	std::condition_variable cv;
 
-	void threadLoop();
-
-	bool shouldTerminate = false;
-	std::mutex queueMutex;
-	std::condition_variable mutexCondition;
 	std::vector<std::thread> threads;
-	std::queue<std::function<void()>> jobs;
+	bool shutdown_request = false; // Initialize shutdown_request
+
+	std::queue<std::function<void()>> queue;
+
+	int total_threads_num;
+	std::atomic<int> busy_threads{ 0 }; // Use atomic for thread-safe operations
 
 public:
-
-	ThreadPool() = default;
-	~ThreadPool() = default;
-
-	void start();
-
-	template<typename Func, typename ...Args>
-	void queueJob(Func&& func, Args &&...args) {
-		{
-			std::unique_lock<std::mutex> lock(this->queueMutex);
-			jobs.push([func = std::forward<Func>(func), ...args = std::forward<Args>(args)] {
-				std::invoke(func, args...);
-				});
-		}
-
-		this->mutexCondition.notify_one();
-	}
+	ThreadPool();
 	
-	void stop();
-	bool busy();
+
+	~ThreadPool();
+
+void start();
+
+	// New shutdown method
+void shutdown();
+
+void worker_thread();
+
+	template <typename F, typename... Args>
+	auto queueTask(F&& f, Args&&... args) -> std::future<decltype(f(args...))>;
+
+	static ThreadPool& accessPool();
+
+	bool anyThreadWorking() const;
+
+	int getBusyThreads() const;
+
+	int getTotalThreads() const;
+
+	int getQueueLength() const;
 };

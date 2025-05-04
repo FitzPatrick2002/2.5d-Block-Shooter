@@ -18,10 +18,10 @@ void MapBox::setWorldPosition(sf::Vector3f newPos) {
 	for (auto& e : this->outline)
 		e.setWorldPosition(newPos);
 }
-
+/*
 sf::Vector3f MapBox::getWorldPos() const {
 	return this->worldPos;
-}
+}*/
 
 // Old .init() that worked for sf::Linestrip for the outline. I'll be changing this to sf::Lines for batching purposes/
 /*

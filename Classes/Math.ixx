@@ -1,5 +1,7 @@
 export module linAlg;
 
+import ThreadPool;
+
 import <SFML/Graphics.hpp>;
 import <ranges>;
 import <numeric>;
@@ -705,3 +707,125 @@ export sf::Vector2i getRandomWalkable(std::function<bool(sf::Vector2i)> isWalkab
 
 	std::cerr << "Can't find random walkable position";
 }
+
+// Rewritten code with namespaces
+
+namespace Hashing {
+
+	export struct V2iHash {
+		size_t operator()(const sf::Vector2i& p1) const {
+			return std::hash<int>()(p1.x) ^ std::hash<int>()(p1.y) << 1;
+		}
+	};
+
+}
+
+namespace Geometry {
+	float pi = 3.14159;
+
+	export float normAngle(float angle) {
+		float a = angle / (2.0f * pi);
+		float b = angle - floor(a) * 2.0f * pi;
+
+		return b < 0 ? 2.0f * pi + b : b;
+
+	}
+
+	export void drawArch_f(std::vector<sf::Vector2i>& points, sf::Vector2i o, int r, float theta, float alpha) {
+		float start_angle = normAngle(theta - alpha);
+		float end_angle = normAngle(theta + alpha);
+
+		points.clear();
+		points.reserve(ceil(8.0f * static_cast<float>(r) * (alpha / pi)));
+
+		if (end_angle < start_angle) {
+			end_angle += 2 * pi;
+		}
+
+		float step = 0.5f * pi / points.capacity();
+		for (float a = start_angle; a < end_angle; a += step) {
+			float aa = normAngle(a);
+			points.emplace_back((int)ceil(r * cos(aa)) + o.x, (int)ceil((float)r * sin(aa)) + o.y);
+		}
+
+		std::vector<sf::Vector2i>::iterator itr = std::unique(points.begin(), points.end());
+		points.resize(std::distance(points.begin(), itr));
+		points.shrink_to_fit();
+	}
+
+	export void drawLineShortRayCasting(std::vector<sf::Vector2i>& points, std::function<bool(int, int)> isWalkable, int max_x, int max_y, int x0, int y0, int x1, int y1, int n) {
+		int dx = std::abs(x1 - x0);
+		int dy = std::abs(y1 - y0);
+
+		int sx = (x1 > x0) ? 1 : -1;
+		int sy = (y1 > y0) ? 1 : -1;
+
+		int err = dx - dy;
+
+		int x = x0;
+		int y = y0;
+
+		int steps_total = (dx + dy) / n;
+		points.clear();
+		points.reserve(steps_total + 1);
+
+		int i = 0;
+		while (i < steps_total) {
+
+			//if (x == x1 && y == y1) break;
+			
+
+			if (not isWalkable(x, y)) {
+				
+				if(x > 0 and y > 0 and x < max_x and y < max_y)
+					points.emplace_back(sf::Vector2i(x, y));
+
+				points.shrink_to_fit();
+				return;
+			}
+
+			points.emplace_back(sf::Vector2i(x, y));
+
+			int e2 = 2 * err;
+			if (e2 > -dy) {
+				err -= dy;
+				x += sx;
+				i++;
+			}
+			if (e2 < dx) {
+				err += dx;
+				y += sy;
+				i++;
+			}
+		}
+	}
+
+	export std::unordered_set<sf::Vector2i, Hashing::V2iHash> rayCastingBresenhamParallel(std::function<bool(int, int)> isWalkable, int max_x, int max_y, sf::Vector2i o, float r, float theta, float alpha) {
+
+		std::vector<sf::Vector2i> rim; // We can optimise it after confirming that it wokrs in that way that we don't loop twice over this vector
+		drawArch_f(rim, o, r * 2.0f, theta, alpha);
+
+		std::vector<std::vector<sf::Vector2i>> rays(rim.size());
+		for (int i = 0; i < rim.size(); i++) {
+			sf::Vector2i p = rim[i];
+
+			drawLineShortRayCasting(rays[i], [&](int x, int y) {return isWalkable(x, y); },max_x, max_y, o.x, o.y, p.x, p.y, 2);
+		}
+
+		// Wait for all the rays to be evaluated
+		while (ThreadPool::accessPool().anyThreadWorking() or ThreadPool::accessPool().getQueueLength() != 0) {}
+
+		// Insert points into the set so that they do not repeat. Though more efficient would probably be drawing the map in here
+		// , I mean setting the vector<bool> for drawing the ma, or just drawing the map in here. Probably yes. On the other had we would need a
+		// set<> that is ordered.
+		// Becuase then we would have to zero it during each iteration I guess? Whatever. Let's put this stuff into a set
+		std::unordered_set<sf::Vector2i, Hashing::V2iHash> outcome;
+		for (auto& vec : rays)
+			outcome.insert(vec.begin(), vec.end());
+
+		return outcome;
+	}
+
+}
+
+namespace geom = Geometry;

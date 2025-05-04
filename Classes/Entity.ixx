@@ -23,9 +23,9 @@ public:
 
 	~Entity();
 
-	void update(sf::Time deltaTime);
+	virtual void update(sf::Time deltaTime);
 
-	void render(sf::RenderWindow* w);
+	virtual void render(sf::RenderWindow* w);
 
 	// Mechanics
 
@@ -47,9 +47,9 @@ public:
 
 	// Getters
 
-	sf::Vector3f getWorldPos();
+	sf::Vector3f getWorldPos() const;
 
-	sf::Vector2f getWorld_XY();
+	sf::Vector2f getWorld_XY() const;
 
 	sf::Vector2f getScreenPosInTiles();
 

@@ -8,7 +8,6 @@ import GameMap;
 import <chrono>;
 
 Combat::Combat(sf::RenderWindow* win) : GameState(win) {
-	this->threadPool.start();
 	this->loadTextures();
 
 	this->initialiseMap();
@@ -22,7 +21,6 @@ Combat::Combat(sf::RenderWindow* win) : GameState(win) {
 Combat::~Combat() {
 
 	this->window->getDefaultView();
-	this->threadPool.stop();
 }
 
 void Combat::initialiseMap() {
@@ -58,7 +56,7 @@ void Combat::initPlayerView() {
 
 void Combat::initEnemies() {
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 20; i++) {
 		sf::Vector3f position(2, 2 + (i * 2), 0);
 		Enemy e;
 
@@ -285,14 +283,14 @@ void Combat::updateEnemies(sf::Time deltaTime) {
 			positions_for_change.push_back({ previous_position, current_position, &e.second });
 		}
 
-		this->threadPool.queueJob([&, this]() {
+		/*this->threadPool.queueJob([&, this]() {
 			this->enemies_manager.updateEnemy(e.second);
-			});
+			});*/
 
 		//while (this->threadPool.busy()) {
 			//std::cout << "Waiting\n";
 		//}
-		//this->enemies_manager.updateEnemy(e.second);
+		this->enemies_manager.updateEnemy(e.second);
 		
 	}
 
