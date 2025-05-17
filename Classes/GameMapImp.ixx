@@ -262,6 +262,7 @@ void GameMap::setPlayerFOV(sf::Vector3f playerPos, sf::Vector2f mousePos) {
 	//this->groundForDisplayRayCasting.clear();
 	//this->setFOVraycasting(sf::Vector2f(playerPos.x, playerPos.y), mousePos);
 
+	
 	float theta = atan2(mousePos.y, mousePos.x);
 	std::cout << "Theta: " << theta << "\n";
 	float alpha = 3.14f / 4.0f;
@@ -271,9 +272,10 @@ void GameMap::setPlayerFOV(sf::Vector3f playerPos, sf::Vector2f mousePos) {
 		[this](int x, int y) -> bool {return this->checkIfTileWalkable(sf::Vector2i(x, y)); }, width, height,
 		V3_to_2i(playerPos), 25.0f, theta, alpha);
 	
+	
 }
 
-void GameMap::setRenderOrder() {
+void GameMap::setRenderOrder(std::vector<Entity*> &elems_to_draw) {
 	/*
 	auto comp = [](const MapBox& a, const MapBox& b) -> bool {
 		sf::Vector3f va = a.getWorldPos();
@@ -288,13 +290,13 @@ void GameMap::setRenderOrder() {
 	std::ranges::sort(groundForDisplay, comp); // Why an error? And this works regrardless of underline?
 	*/
 
-	displayed_objects.clear();
-	displayed_objects.resize(0);
-	displayed_objects.resize(ground_to_display_s.size());
+	elems_to_draw.clear();
+	elems_to_draw.resize(0);
+	elems_to_draw.resize(ground_to_display_s.size());
 
 	int i = 0;
 	for (auto & pos : ground_to_display_s) {
-		displayed_objects[i] = &(this->ground[pos.y * width + pos.x]);
+		elems_to_draw[i] = &(this->ground[pos.y * width + pos.x]);
 		i++;
 	}
 
@@ -306,7 +308,8 @@ void GameMap::setRenderOrder() {
 		return sum_1 < sum_2;
 		};
 
-	std::ranges::sort(this->displayed_objects, comp_pts);
+	std::ranges::sort(elems_to_draw, comp_pts);
+	
 }
 
 bool GameMap::checkIfOnMap(sf::Vector2f pos) {
@@ -385,8 +388,8 @@ void GameMap::render(sf::RenderWindow* w) {
 		this->ground[e.y * width + e.x].render(w);
 	*/
 
-	for (auto& e : this->displayed_objects) 
-		e->render(w);
+	/*for (auto& e : this->displayed_objects) // This was used with the bresenhamRayCastingParallel
+		e->render(w);*/
 	
 
 	// rendering with the use of raycasting
@@ -408,15 +411,15 @@ sf::Vector2i GameMap::getChunksAmount() {
 	return this->chunks_amount;
 }
 
-MapBox GameMap::getTile(int i, int j) {
+MapBox& GameMap::getTile(int x, int y) {
 
-	if (i < 0 or i > this->height)
+	if (y < 0 or y >= this->height)
 		std::cerr << "Map has dimesions: " << this->height << " " << this->width << "\n";
 
-	if (j < 0 or j > this->width)
+	if (x < 0 or x >= this->width)
 		std::cerr << "Map has dimesions: " << this->height << " " << this->width << "\n";;
 
-	return this->ground[i * this->width + j];
+	return this->ground[y * this->width + x];
 }
 
 void GameMap::loadFromFile(std::string file_name) {

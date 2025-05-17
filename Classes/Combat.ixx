@@ -51,6 +51,9 @@ private:
 	// Temporary testing the 3d objects
 	GameMap map;
 
+	// FOV
+	std::vector <Entity*> displayed_objects;
+
 	// Lines array:
 	sf::VertexArray lines_buffer;
 	sf::VertexArray quads_buffer;

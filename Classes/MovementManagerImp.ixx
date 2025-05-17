@@ -63,7 +63,7 @@ void MovementManager::movePlayer(Player& p, sf::Time deltaTime) {
 	if (not this->playerOutsideMap(p, deltaTime)) {
 		if (anticipated_xy_pos != current_xy_pos) {
 			current_z = playerPos.z;
-			future_z = this->gameMap->getTile(anticipated_xy_pos.y, anticipated_xy_pos.x).getDimensions().z;
+			future_z = this->gameMap->getTile(anticipated_xy_pos.x, anticipated_xy_pos.y).getDimensions().z;
 
 
 			if (future_z > current_z + 2.0f) {
@@ -77,7 +77,7 @@ void MovementManager::movePlayer(Player& p, sf::Time deltaTime) {
 
 		if (updatePos == true) {
 			playerPos = playerPos + deltaTime.asSeconds() * playerVelMag * playerVelocityVersor;
-			playerPos.z = this->gameMap->getTile(anticipated_xy_pos.y, anticipated_xy_pos.x).getDimensions().z;
+			playerPos.z = this->gameMap->getTile(anticipated_xy_pos.x, anticipated_xy_pos.y).getDimensions().z;
 
 			p.setWorldPos(playerPos);
 		}

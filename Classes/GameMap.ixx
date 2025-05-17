@@ -47,7 +47,6 @@ private:
 	std::vector<MapBox> groundForDisplay;
 	//std::set<sf::Vector2f, OrderPairsForDrawing> groundForDisplayRayCasting;
 	std::unordered_set<sf::Vector2i, Hashing::V2iHash> ground_to_display_s;
-	std::vector <Entity*> displayed_objects;
 
 	TextureManager* textureManager;
 
@@ -79,7 +78,7 @@ public:
 
 	//void iterateOverWidth(int y, int width, sf::Vector3f playerPos, sf::Vector2f mousePos);
 
-	void setRenderOrder();
+	void setRenderOrder(std::vector<Entity*>& elems_to_draw);
 
 	void render(sf::RenderWindow* w);
 
@@ -103,7 +102,7 @@ public:
 
 	sf::Vector2i getChunksAmount();
 
-	MapBox getTile(int i, int j);
+	MapBox& getTile(int x, int y);
 
 	// Saving to file
 

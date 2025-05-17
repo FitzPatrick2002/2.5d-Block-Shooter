@@ -79,9 +79,88 @@ void Combat::initEnemies() {
 }
 
 void Combat::updatePlayerFOV() {
+	//this->map.setPlayerFOV(this->player.getWorldPos(), this->getRawMousePosRelCenterNormalized());
+	//this->map.setRenderOrder(this->displayed_objects);
+	
+	sf::Vector2f mousePos = this->getRawMousePosRelCenterNormalized();
+	sf::Vector2i playerPos = V3_to_2i(this->player.getWorldPos());
 
-	this->map.setPlayerFOV(this->player.getWorldPos(), this->getRawMousePosRelCenterNormalized());
-	this->map.setRenderOrder(/*this->player.getWorldPos() */);
+	std::unordered_set<sf::Vector2i, Hashing::V2iHash> ground_to_display_s;
+
+	// Run the fov -> puth this in separate methode
+	float theta = atan2(mousePos.y, mousePos.x);
+	std::cout << "Theta: " << theta << "\n";
+	float alpha = 3.14f / 4.0f;
+
+	// New bresenham raycasting
+	ground_to_display_s = Geometry::rayCastingBresenhamParallel(
+		[this](int x, int y) -> bool {return this->map.checkIfTileWalkable(sf::Vector2i(x, y)); }, this->map.getWidth(), this->map.getHeight(),
+		playerPos, 25.0f, theta, alpha);
+
+	// Add the map tiles to draw
+
+	displayed_objects.clear();
+	displayed_objects.resize(0);
+	displayed_objects.resize(ground_to_display_s.size());
+
+	int i = 0;
+	for (auto& pos : ground_to_display_s) {
+		displayed_objects[i] = &(this->map.getTile(pos.x, pos.y));
+		i++;
+	}
+	
+	// Add the enemies to the fov.
+
+	displayed_objects.reserve(enemies.size() + bullets.size());
+	for (auto& e : this->enemies) {
+		
+		if (ground_to_display_s.contains(v2f_to_v2i( e.second.getWorld_XY()))) {
+			displayed_objects.emplace_back(&e.second);
+			
+		}
+	}
+
+	// Add bullets to the fov
+
+	
+	for (auto& b : bullets) {
+		if (ground_to_display_s.contains(v2f_to_v2i(b.getWorld_XY()))) {
+			displayed_objects.emplace_back(&b);
+			
+		}
+	}
+	
+
+	displayed_objects.shrink_to_fit();
+
+	auto comp_pts = [](const Entity* p1, const Entity* p2) {
+
+		float sum_1 = p1->getWorld_XY().x + p1->getWorld_XY().y; // -.z
+		float sum_2 = p2->getWorld_XY().x + p2->getWorld_XY().y; // -.z
+
+		if (sum_1 == sum_2) {
+			if (typeid(*p1) == typeid(Enemy) and typeid(*p2) == typeid(MapBox)) {
+				return false;
+			}
+			if (typeid(*p1) == typeid(MapBox) and typeid(*p2) == typeid(Enemy)) {
+				return true;
+			}
+		}
+
+		/*
+		float sum_1 = p1->getWorld_XY().y;
+		float sum_2 = p2->getWorld_XY().y;
+
+		if (sum_1 == sum_2) {
+			sum_1 = p1->getWorld_XY().x;
+			sum_2 = p1->getWorld_XY().x;
+		}*/
+
+		return sum_1 < sum_2;
+		};
+
+	std::ranges::sort(displayed_objects, comp_pts);
+	
 }
 
 void Combat::updatePlayerView() {
@@ -322,7 +401,7 @@ void Combat::update(sf::Time deltaTime) {
 
 	this->player.update(deltaTime);
 	this->player.updateSightAngle(this->getMousePos());
-	this->updatePlayerFOV();
+	
 
 	for (auto& b : bullets) {
 		b.update(deltaTime);
@@ -333,6 +412,8 @@ void Combat::update(sf::Time deltaTime) {
 	this->checkCollisions();
 
 	this->removeObjects();
+
+	this->updatePlayerFOV();
 
 	this->updatePlayerView();
 	this->render();
@@ -346,16 +427,21 @@ void Combat::update(sf::Time deltaTime) {
 void Combat::render() {
 	this->window->clear();
 
-	this->map.render(this->window);
+	//this->map.render(this->window);
 	//this->window->draw(this->quads_buffer);
 	//this->window->draw(this->lines_buffer);
 	
+	for (auto& e : this->displayed_objects) {
+		e->render(window);
+	}
 
+	/*
 	for (auto& e : bullets)
 		e.render(window);
 
 	for (auto& e : enemies)
 		e.second.render(window);
+	*/
 
 	this->player.render(window);
 
