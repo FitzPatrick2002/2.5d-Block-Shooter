@@ -13,7 +13,9 @@ Player::Player(sf::Vector3f initPos, sf::Texture* t) : Entity(initPos) {
 
 
 Player::Player() : Entity() {
-	this->velMag = 4.0f;
+	//this->velMag = 4.0f;
+	this->setVelMag(CombatMapData::getCombatMapData().getPlayerSpeed());
+	this->hp = CombatMapData::getCombatMapData().getPlayerHp();
 
 	this->setWorldPos(sf::Vector3f(0.0f, 0.0f, 0.0f));
 
@@ -94,6 +96,14 @@ void Player::render(sf::RenderWindow* w) {
 
 float Player::getSightAngle() {
 	return this->sightAngle;
+}
+
+void Player::decreaseHp(int d) {
+	this->hp -= d;
+}
+
+int Player::getHp() {
+	return this->hp;
 }
 
 bool Player::isMoving() {

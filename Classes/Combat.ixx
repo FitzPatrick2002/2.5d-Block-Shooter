@@ -112,6 +112,8 @@ public:
 	// It updates the current "hitboxes" in the unordered_map enemies
 	void updateEnemies(sf::Time deltaTime);
 
+	void updateEnemySpawning();
+
 	// Here we put all the stuff that does not regard rendering and graphics
 	// User input, Updating positions, physics, etc.
 	virtual void update(sf::Time deltaTime);
@@ -120,6 +122,8 @@ public:
 	void render();
 
 	void resizeView();
+
+	void endCondition();
 
 	//  ------------------------------- Setters and getters ----------------------------------
 	// They are here only so that I can access varibale sin threads.

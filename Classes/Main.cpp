@@ -6,23 +6,20 @@ import GameManager;
 import linAlg;
 import <functional>;
 
+import <vector>;
+import <string>;
+import <future>;
+import <regex>;
+
+// IN PROGRESS: 8.
+
 // TO DO:
-// 1. FOV as ray casting / some other clever algorithm
-// 2. Make as many things as possible run on threads  // --->>> BUT FIRST GET FUCKING EDUCATED ON HOW THREADS WORK
-//		- Enemies updates
-//		- Collision checking maybe as well?
-//		- FOV on thread
-//	Different concept:
-//		- Split the program in two parts
-//		- First does some changes but deletion and adding stuff is stored in temporary data structures (lists, vectors, etc)
-//			- This part is run on threads to make it faster
-//		- Then there is the part where all of these changes are included (like removing bullets, removing enemies after they are killed, etc.)
-// 3. Optimise stuff by the fucking batching. 
-// 4. Make FOV work for batched map
 // 5. Make menu prettier, add background screen, blurred image of the gameplay, move slowly from side to side, fade and then unfade into a different picture.
-// 6. Mechanic of being killed by enemies
-// 7. Saving enemies into the map file (amount to spawn and places where they are to be spawned)
-// 8. Something that needs to be doen but I forgot
+// 7. Saving system (player hp, position), (enemies, number. how many left, positions)
+// 8. Credits menu
+// 9. Async for map loading (100x100 takes a lot of time)
+// 10. Options menu (bullet speed, player hp, size of tile, etc
+// 
 // . . . 
 // 21. Fix the resizing of the window
 
@@ -38,7 +35,7 @@ import <functional>;
 //		ex. collision checking -> more tricky because it is sort of dependent on how we actaully check the collision (container type)
 //		ex. AI Hard to generalise -> more like I duhnno, I really dunno...
 
-// What I'm trying to achieve is to be able to add elements to the program in a ery simple manner 
+// What I'm trying to achieve is to be able to add elements to the program in a very simple manner 
 // For example when I want a new enemy I just 
 
 
@@ -93,8 +90,61 @@ struct TempMap {
 
 };
 
+void func(std::vector<int> &vec, std::string line_part, int pos_begin) {
+	std::cout << "pos_begin = " << pos_begin << "\n";
+	std::regex reg("(\\d+)\\s+");
+	std::smatch m;
+
+	std::sregex_iterator start = std::sregex_iterator(line_part.begin(), line_part.end(), reg);
+	std::sregex_iterator end = std::sregex_iterator();
+
+	int j = 0;
+	for (auto i = start; i != end; i++) {
+		m = *i;
+		vec[pos_begin + j] = std::atoi(m[1].str().c_str());
+		//std::cout << "pos_begin = " << pos_begin << " j = " << j << "\n";
+		j++;
+	}
+
+}
+
 int main()
 {
+	std::vector<int> vec(100);
+
+	auto binded_func = std::bind(func, std::ref(vec), std::placeholders::_1, std::placeholders::_2);
+	
+	std::vector<std::string> data = {
+		"1 1 0 0 0 1 0 1 0 0",
+		"1 0 0 0 0 1 0 1 0 0",
+		"1 5 0 0 0 1 0 1 0 0",
+		"0 0 0 0 0 0 0 4 0 0",
+		"1 1 0 0 0 1 0 1 0 0",
+		"1 1 0 0 0 9 0 0 0 0",
+		"1 1 0 0 0 1 0 1 0 0",
+		"1 1 0 0 0 1 0 1 0 0",
+		"1 1 0 0 0 1 0 1 0 0",
+		"1 1 0 0 0 1 0 1 0 0"
+	};
+
+	std::vector<std::future<void>> async_tasks(10);
+	for (int i = 0;  auto & line : data) {
+		// Start async task for each line
+		async_tasks[i] = std::async(binded_func, line, i * 10);
+		i++;
+	}
+
+	for (auto& e : async_tasks)
+		e.get();
+
+	for (int i = 0; i < 10; i++) {
+		for (int j = 0; j < 10; j++) {
+			std::cout << vec[i * 10 + j] << " ";
+		}
+		std::cout << "\n";
+	}
+
+
 	/*
 	Enemy enemy;
 	
@@ -218,6 +268,8 @@ int main()
 		std::cout << "\n";
 	}
 	*/
+
+	
 
 	ThreadPool::accessPool().start();
 

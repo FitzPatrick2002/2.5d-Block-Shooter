@@ -7,6 +7,7 @@ export enum class GameStateEnum
 	MainMenu = 0,
 	Combat,
 	MapChoosing,
+	Settings,
 	Credits,
 	Exit
 };
@@ -27,6 +28,8 @@ public:
 
 		//delete this->window;
 	}
+
+	void handleUserInput();
 
 	virtual void update(sf::Time deltaTime) = 0;
 };

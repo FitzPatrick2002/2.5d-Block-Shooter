@@ -45,9 +45,9 @@ Follow_Path::~Follow_Path() {
 
 // I guess we'll just queue a set of Start_movement_Che_if_at_destination and Stop commands
 void Follow_Path::operator()() {
-
 	sf::Vector2f new_vel = makeVersor(this->enemy_handle->getWorld_XY(), v2i_to_v2f(path[0]));
-	float vel_mag = 2.0f;
+	//float vel_mag = 2.0f;
+	float vel_mag = CombatMapData::getCombatMapData().getEnemySpeed();
 
 	Start_movement start(new_vel, vel_mag);
 	Check_if_at_destination travel(v2i_to_v2f(path[0]));

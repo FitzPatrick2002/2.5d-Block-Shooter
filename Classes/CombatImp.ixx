@@ -56,24 +56,18 @@ void Combat::initPlayerView() {
 
 void Combat::initEnemies() {
 
-	for (int i = 0; i < 20; i++) {
-		sf::Vector3f position(2, 2 + (i * 2), 0);
+	std::string map_to_load = CombatMapData::getCombatMapData().getMapToLoad(); // Get which map we want to load
+	this->enemies_manager.accessSettings().readMapFile(map_to_load); // Open the map file and read number of enemies and their spawning points
+
+	
+	//this->enemies_manager.accessSettings().spawnEnemies(enemies);
+	/*for (int i = 0; i < 20; i++) {
+		sf::Vector3f position(2, 2 + (i * 2), 0); // Position of enemy
 		Enemy e;
 
-		Start_movement mov(sf::Vector2f(1.0f, 0.0f), 2.0f);
-		Check_if_at_destination dest(sf::Vector2f(10.0f, 0.0f));
-
-		Stop_movement stop;
-
-		this->enemies.insert({sf::Vector2i(position.x, position.y), e});
-		
-		this->enemies.find(V3_to_2i(position))->second.init(position);
-		//this->enemies[V3_to_2i(position)].init(position);
-
-	//	this->enemies[V3_to_2i(position)].queueCommand(&mov);
-	//	this->enemies[V3_to_2i(position)].queueCommand(&dest);
-	//	this->enemies[V3_to_2i(position)].queueCommand(&stop);
-	}
+		this->enemies.insert({sf::Vector2i(position.x, position.y), e}); // Add enemy with this position
+		this->enemies.find(V3_to_2i(position))->second.init(position); // Initialise this enemy. (Already existing on the map, in the map of enemies)
+	}*/
 
 	this->enemies_manager.init(&this->map, &this->player, &this->bullets);
 }
@@ -83,13 +77,20 @@ void Combat::updatePlayerFOV() {
 	//this->map.setRenderOrder(this->displayed_objects);
 	
 	sf::Vector2f mousePos = this->getRawMousePosRelCenterNormalized();
+
+	sf::Vector2f mouse_pos = this->getMousePos();
+	mouse_pos = convertPixelsToTiles(mouse_pos);
+	sf::Vector3f mousePos_3f = convertScreenInTilesToWorld(mouse_pos, 0.5f);
+	float mouse_delta_x = mousePos_3f.x - player.getWorld_XY().x;
+	float mouse_delta_y = mousePos_3f.y - player.getWorld_XY().y;
+	
+	float theta = getAngleOnPlane(mouse_delta_x, mouse_delta_y);
+
 	sf::Vector2i playerPos = V3_to_2i(this->player.getWorldPos());
 
 	std::unordered_set<sf::Vector2i, Hashing::V2iHash> ground_to_display_s;
 
-	// Run the fov -> puth this in separate methode
-	float theta = atan2(mousePos.y, mousePos.x);
-	std::cout << "Theta: " << theta << "\n";
+	// Run the fov -> put this in separate methode
 	float alpha = 3.14f / 4.0f;
 
 	// New bresenham raycasting
@@ -110,16 +111,16 @@ void Combat::updatePlayerFOV() {
 	}
 	
 	// Add the enemies to the fov.
-
+	int added_enemies_count = 0;
 	displayed_objects.reserve(enemies.size() + bullets.size());
 	for (auto& e : this->enemies) {
 		
-		if (ground_to_display_s.contains(v2f_to_v2i( e.second.getWorld_XY()))) {
+		if (ground_to_display_s.contains(v2f_to_v2i(e.second.getWorld_XY()))) {
 			displayed_objects.emplace_back(&e.second);
-			
+			added_enemies_count++;
 		}
 	}
-
+	std::cout << "Displaying [n] enemies: " << added_enemies_count << "\n";
 	// Add bullets to the fov
 
 	
@@ -244,17 +245,57 @@ sf::Vector2f Combat::getRawMousePosRelCenterNormalized() {
 	return outcome;
 }
 
+/*
+void Shoot::operator()(sf::Vector2f enemy_pos) {
+	Bullet b;
+	std::cout << this->player_position - enemy_pos << "\n";
+
+	sf::Vector2f versor = makeVersor(this->player_position - enemy_pos);
+	versor = 2.0f * versor;
+
+	b.init(enemy_pos + versor, this->player_position);
+
+	{
+		std::lock_guard<std::mutex> mt(bullets_mutex_temp);
+
+		this->bullets_list_handle->push_back(b);
+	}
+	this->finished = true;
+}
+
+sf::Vector2f mousePos = this->getRawMousePosRelCenterNormalized();
+
+	sf::Vector2f mouse_pos = this->getMousePos();
+	mouse_pos = convertPixelsToTiles(mouse_pos);
+	sf::Vector3f mousePos_3f = convertScreenInTilesToWorld(mouse_pos, 0.5f);
+	float mouse_delta_x = mousePos_3f.x - player.getWorld_XY().x;
+	float mouse_delta_y = mousePos_3f.y - player.getWorld_XY().y;
+
+	float theta = getAngleOnPlane(mouse_delta_x, mouse_delta_y);
+
+*/
+
 void Combat::createPlayersBullet() {
 	Bullet b;
-	b.init(this->player.getWorldPos(), convertPixelsToTiles(this->getRawMousePosRelCenterNormalized()));
+	// Put the bullet outside of the players position. 
+	// 1. Where is the mouse
+	// 2. Offset -> player mouse
+	// 3. Change that to versor
+	// 4. Shoot bullet from player position + offset
+
+	sf::Vector2f mouse_pos = convertPixelsToTiles(this->getMousePos());
+	sf::Vector3f mouse_pos_3f = convertScreenInTilesToWorld(mouse_pos, 0.5f);
+	sf::Vector3f displacement = mouse_pos_3f - this->player.getWorldPos();
+	displacement = makeVersor(displacement);
+	
+	sf::Vector3f bullet_starting_point = this->player.getWorldPos() + displacement;
+	b.init(bullet_starting_point, convertPixelsToTiles(this->getRawMousePosRelCenterNormalized()));
 
 	this->bullets.push_back(b);
 }
 
 void Combat::handleEvents() {
-
 	while (this->window->pollEvent(this->stateEvent)) {
-
 		switch (this->stateEvent.type) {
 		case sf::Event::Closed():
 			this->window->close();
@@ -264,6 +305,7 @@ void Combat::handleEvents() {
 			break;
 		case sf::Event::MouseButtonPressed:
 			this->createPlayersBullet();
+			
 			break;
 		case sf::Event::MouseWheelScrolled:
 
@@ -296,15 +338,15 @@ void Combat::checkBulletsCollisions() {
 	for (itr; itr != bullets.end(); itr++) {
 		bool removed = false;
 
+		// If bullet flew out outside the map, delete it
 		if (not this->map.checkIfOnMap(itr->getWorld_XY())) {
 			this->addBulletForRemoval(itr);
-			//itr = this->bullets.erase(itr);
 			removed = true;
 		}
 
+		// If bullet hit a non-walkable tile (wall), delete it
 		if (not this->map.checkIfTileWalkable(itr->getWorld_XY())) {
 			this->addBulletForRemoval(itr);
-			//itr = this->bullets.erase(itr);
 			removed = true;
 		}
 
@@ -312,19 +354,19 @@ void Combat::checkBulletsCollisions() {
 		sf::Vector2i bullet_pos = v2f_to_v2i(itr->getWorld_XY());
 		std::unordered_map <sf::Vector2i, Enemy, Vector2iHash>::iterator enemy_itr = this->enemies.find(bullet_pos);
 		if (enemy_itr != this->enemies.end()) {
-			
 			this->addBulletForRemoval(itr);
-			//itr = this->bullets.erase(itr);
 			this->enemies.erase(enemy_itr);
-			
 			removed = true;
 		}
 
-		//if (not removed) {
-		//	++itr;
-		//}
+		// Check collisions with player
+		if (bullet_pos == v2f_to_v2i(player.getWorld_XY())) {
 
-
+			//this->player->decreaseHp();
+			this->player.decreaseHp(1);
+			this->addBulletForRemoval(itr);
+			removed = true;
+		}
 	}
 }
 
@@ -388,11 +430,15 @@ void Combat::updateEnemies(sf::Time deltaTime) {
 	}
 }
 
+void Combat::updateEnemySpawning() {
+	this->enemies_manager.accessSettings().spawnEnemies(this->enemies);
+}
+
 // Here we put all the stuff that does not regard rendering and graphics
 // User input, Updating positions, physics, etc.
 void Combat::update(sf::Time deltaTime) {
 
-	std::cout << "Fps: " << 1 / float(deltaTime.asSeconds()) << "\n";
+	//std::cout << "Fps: " << 1 / float(deltaTime.asSeconds()) << "\n";
 
 	//std::cout << this->player.getWorldPos().x<< ", "<<this->player.getWorldPos().y << "\n";
 	this->handleUserInput();
@@ -413,12 +459,15 @@ void Combat::update(sf::Time deltaTime) {
 
 	this->removeObjects();
 
+	this->updateEnemySpawning(); // Recently added
+
 	this->updatePlayerFOV();
 
 	this->updatePlayerView();
 	this->render();
 
 	this->handleEvents();
+	this->endCondition();
 	this->handleUserInput();
 
 }
@@ -458,5 +507,13 @@ void Combat::resizeView() {
 	float viewRatio = this->playerViewSize.x / this->playerViewSize.y;
 
 	this->playerViewSize = sf::Vector2f(playerView.x * aspectRatio, playerView.x);
+
+}
+
+void Combat::endCondition() {
+
+	if (this->player.getHp() < 0) {
+		GameManager::getManager().createNewState(GameStateEnum::MainMenu, true);
+	}
 
 }

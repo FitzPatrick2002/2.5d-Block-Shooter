@@ -2,6 +2,8 @@ import GameManager;
 import Combat;
 import MainMenu;
 import MapsMenuList;
+import CreditsMenu;
+import SettingsMenu;
 
 import <iostream>;
 
@@ -37,7 +39,6 @@ void GameManager::update() {
 
 void GameManager::createNewState(GameStateEnum st, bool destackCurrent = true) {
 	std::shared_ptr<GameState> temp;
-
 	if (destackCurrent == true and not this->savedStates.empty()) {
 		this->savedStates.pop();
 	}
@@ -58,7 +59,14 @@ void GameManager::createNewState(GameStateEnum st, bool destackCurrent = true) {
 		this->savedStates.push(temp);
 
 		break;
+	case GameStateEnum::Settings:
+		temp = std::make_shared<SettingsMenu>(this->mainWindow);
+		this->savedStates.push(temp);
+
+		break;
 	case GameStateEnum::Credits:
+		temp = std::make_shared<CreditsMenu>(this->mainWindow);
+		this->savedStates.push(temp);
 
 		break;
 	default:

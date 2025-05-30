@@ -17,7 +17,9 @@ private:
 	float sightAngle;
 	Viewfinder viewfinder;
 
-	// Temporary 3d appearence
+	int hp;
+
+	// Temporary 3d appearance
 	MapBox playerModel;
 
 public:
@@ -46,6 +48,10 @@ public:
 
 	// Returns angle in degrees
 	float getSightAngle();
+
+	void decreaseHp(int d = 1);
+
+	int getHp();
 
 	bool isMoving();
 };

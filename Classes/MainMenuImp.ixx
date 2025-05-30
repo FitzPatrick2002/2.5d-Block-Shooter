@@ -98,7 +98,7 @@ void MainMenu::handleUserInput() {
 		case sf::Event::KeyPressed:
 
 			if (this->stateEvent.key.code == sf::Keyboard::M) {
-				GameManager::getManager().createNewState(GameStateEnum::Combat, true);
+				//GameManager::getManager().createNewState(GameStateEnum::Combat, true);
 				return;
 			}
 
@@ -131,13 +131,15 @@ void MainMenu::handleMenuInput() {
 		return;
 	}
 	else if (this->options[2].containsMouse(mouse_pos)) {
-
+		GameManager::getManager().createNewState(GameStateEnum::Settings, true);
+		return;
 	}
 	else if (this->options[3].containsMouse(mouse_pos)) {
-
+		GameManager::getManager().createNewState(GameStateEnum::Credits, true);
+		return;
 	}
 	else if (this->options[4].containsMouse(mouse_pos)) {
-
+		this->window->close();
 	}
 
 }

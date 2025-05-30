@@ -18,10 +18,43 @@ import <iostream>;
 
 class GameMap;
 
+// To the CombatMapData add also
+// Player speed, enemies speed, enemies shooting rate, player shooting rate, 
+
+/*
+------ enemy -------
+shooting_rate: 5.0
+speed: 3.0
+detection_range: 10.0
+
+------ player -------
+hp: 5.0
+shooting_rate: 3.0
+speed:2.0
+
+------- map ------- //Done
+tile_dimension_x: 40.0
+tile_dimension_y: 20.0
+
+------- bullet -------
+speed: 10.0
+*/
+
 export class CombatMapData {
 private:
 	sf::Vector2f scrTileSize;
 	std::string map_to_load;
+	
+	float player_speed = 1.0f; // [tiles]
+	float player_shooting_rate = 1.0f; // [tiles]
+	float player_bullet_speed = 3.0f; // [tiles]
+	int player_hp; // Number of shots to get killed
+
+	float enemy_speed;
+	float enemy_shooting_rate;
+	float enemy_bullet_speed;
+
+	std::unordered_map<std::string, std::unordered_map<std::string, float>> base_float_parameters;
 
 public:
 	CombatMapData() {
@@ -43,8 +76,49 @@ public:
 	}
 
 	sf::Vector2f getScrTileSize() {
-		return this->scrTileSize;
+		//return this->scrTileSize;
+		sf::Vector2f size;
+		size.x = this->base_float_parameters["map"]["tile_dimension_x"];
+		size.y = this->base_float_parameters["map"]["tile_dimension_y"];
+
+		return size;
 	}
+
+	// Enemy stuff 
+
+	float getEnemyShootingRate() {
+		return this->base_float_parameters["enemy"]["shooting_rate"];
+	}
+
+	float getEnemySpeed() {
+		return this->base_float_parameters["enemy"]["speed"];
+	}
+
+	float getEnemyDetectionRange() {
+		return this->base_float_parameters["enemy"]["detection_range"];
+	}
+
+	// Player stuff
+
+	float getPlayerHp() {
+		return this->base_float_parameters["player"]["hp"];
+	}
+
+	float getPlayerShootingRate() {
+		return this->base_float_parameters["player"]["shooting_rate"];
+	}
+
+	float getPlayerSpeed() {
+		return this->base_float_parameters["player"]["speed"];
+	}
+
+	// Bullet stuff
+
+	float getBulletSpeed() {
+		return this->base_float_parameters["bullet"]["speed"];
+	}
+
+	// Other
 
 	void setScrTileSize(sf::Vector2f newTileSize) {
 		this->scrTileSize = newTileSize;
@@ -54,6 +128,58 @@ public:
 		this->map_to_load = str;
 	}
 
+	void addFloatObject(std::string obj) {
+		this->base_float_parameters[obj];
+	}
+
+	void addFieldForFloatObject(std::string object, std::string field) {
+		if (this->base_float_parameters.find(object) != this->base_float_parameters.end()) {
+			this->base_float_parameters[object][field];
+		}
+	}
+	
+	float getFloatParameter(std::string object, std::string param_name) {
+		if (base_float_parameters.find(object) != base_float_parameters.end()) {
+			auto &temp = base_float_parameters[object];
+			if (temp.find(param_name) != temp.end()) {
+				return temp[param_name];
+			}
+			else {
+				std::cerr << "There is no parameter of type " << param_name << " for object " << object << "\n";
+			}
+		}
+		else {
+			std::cerr << "There is object of type: " << object << " cannot load it's default parameters\n";
+		}
+
+		return -1.0f;
+	}
+
+	// It doesn'y check if parameter exists
+	void setFloatParameter(std::string object, std::string param_name, float val) {
+		if (base_float_parameters.find(object) != base_float_parameters.end()) {
+			auto& temp = base_float_parameters[object];
+			if (temp.find(param_name) != temp.end()) {
+				temp[param_name] = val;
+			}
+			else {
+				std::cerr << "There is no parameter of type" << param_name << " for object " << object << "\n";
+			}
+		}
+		else {
+			std::cerr << "There is no object of type: " << object << " cannot load it's default parameters\n";
+		}
+	}
+	
+	void printFloatContents() {
+		for (auto& obj_data : base_float_parameters) {
+			std::cout << "Object type: " << obj_data.first << "\n";
+			for (auto& param : obj_data.second) {
+				std::cout << param.first << ": " << param.second << "\n";
+			}
+			std::cout << "\n";
+		}
+	}
 };
 
 export struct Vector2iHash {
@@ -204,7 +330,7 @@ export sf::Vector2f operator*(float f, sf::Vector2f& v) {
 export float getAngleOnPlane(float x, float y) {
 	float a = std::atan2(y, x);
 
-	return a > 0 ? a : 2*3.14+a;
+	return a > 0 ? a : 2.0f*3.14+a;
 }
 
 export float vectorLength(sf::Vector2f v) {
@@ -233,6 +359,19 @@ export sf::Vector2f makeVersor(sf::Vector2f v) {
 export sf::Vector2f makeVersor(sf::Vector2f pos_1, sf::Vector2f pos_2) {
 	sf::Vector2f outcome = pos_2 - pos_1;
 	outcome = 1 / vectorLength(outcome) * outcome;
+
+	return outcome;
+}
+
+export sf::Vector3f makeVersor(sf::Vector3f v) {
+	sf::Vector3f outcome = 1 / vectorLength(v) * v;
+
+	return outcome;
+}
+
+export sf::Vector3f makeVersor(sf::Vector3f dest, sf::Vector3f src) {
+	sf::Vector3f v = dest - src;
+	sf::Vector3f outcome = 1 / vectorLength(v) * v;
 
 	return outcome;
 }

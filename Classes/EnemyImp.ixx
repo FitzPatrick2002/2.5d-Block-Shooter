@@ -9,8 +9,8 @@ Enemy::Enemy() {
 	
 	this->current_command = nullptr;
 	this->current_status = EnemyState::Patrol;
-	this->view_range = 7.0f;
-
+	//this->view_range = 7.0f;
+	this->view_range = CombatMapData::getCombatMapData().getEnemyDetectionRange();
 }
 
 Enemy::~Enemy() {
@@ -36,7 +36,7 @@ void Enemy::performCommand() {
 
 		if (current_command->isFinished()) {
 			// std::cout << "command finished" << static_cast<int>(current_command->getType()) << "\n";
-			std::cout << "queuel length: " << commands_queue.size() << "\n";
+			//std::cout << "queuel length: " << commands_queue.size() << "\n";
 			commands_queue.pop();
 			if (not commands_queue.empty()) {
 

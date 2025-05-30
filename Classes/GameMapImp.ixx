@@ -4,12 +4,15 @@ import <iostream>;
 import <random>;
 import <ranges>;
 import <algorithm>;
+import <atomic>;
 
 import linAlg;
 
 import <thread>;
 import <mutex>;
 
+import <future>;
+import <vector>;
 import <chrono>;
 import<filesystem>;
 import <regex>;
@@ -19,6 +22,7 @@ import <sstream>;
 import <unordered_map>;
 import <algorithm>;
 import <set>;
+
 
 namespace fs = std::filesystem;
 
@@ -456,34 +460,164 @@ void GameMap::loadFromFile(std::string file_name) {
 		}
 		};
 
+	auto create_tile = [this](int x, int y, float val) {
+		sf::Vector3f pos(static_cast<float>(x), static_cast<float>(y), 0);
+		sf::Vector3f dims(1.0f, 1.0f, val*0.5f);
+
+		
+		this->ground[y * width + x].init(pos, dims);
+		this->ground[y * width + x].setOutlineColor(sf::Color(0, 255, 0, 255));
+		this->ground[y * width + x].setWallsColor(sf::Color(0, 0, 0, 255));
+		this->ground[y * width + x].setWallsColor(sf::Color(255, 0, 0, 255), 0); // ERROR - 15x20 map vector subscript out of range
+		this->ground[y * width + x].setWallsColor(sf::Color(0, 0, 255, 255), 1);
+		this->ground[y * width + x].setWallsColor(sf::Color(125, 125, 0, 255), 2);
+		};
+
+	auto create_map_row = [create_tile, this](std::string row_data, int row_num) {
+		std::regex map_regex("\\s*(-?\\d+\\.?\\d*)\\s*"); // Regex for reading rows of the map
+		std::smatch m;
+
+		std::sregex_iterator begin = std::sregex_iterator(row_data.begin(), row_data.end(), map_regex);
+		std::sregex_iterator end = std::sregex_iterator();
+
+		int i = 0;
+		for (std::sregex_iterator itr = begin; itr != end; itr++) {
+			m = *itr;
+
+			float h = std::atof(m[1].str().c_str());
+
+			create_tile(i, row_num, h);
+			i++;
+		}
+	};
+
+	if (map_file.is_open()) {
+
+		read_width_height(); // Width and height should be provided at the beginning of the file
+
+		// Read the map matrix row by row and create the map
+		this->ground.clear();
+		this->ground.resize(width * height);
+
+		std::regex map_regex("\\s*(-?\\d+\\.?\\d*)\\s*"); // Regex for reading rows of the map
+		std::smatch m;
+
+		std::string line;
+		int y = 0;
+		int x = 0;
+
+		std::vector<std::future<void>> async_row_building(this->height);
+
+		// The map matrix should be all together without any blank lines in between.
+		int map_rows_count = 0;
+		//while (std::getline(map_file, line) and map_rows_count < this->height) { // Old
+		while (std::getline(map_file, line) and y < this->height) {
+			// Async plan:
+			// 1. Getline 
+			// 2. Let the async build this line
+			// 3. Move to the next line, repeat till enitre map matrix is read
+
+			async_row_building[y] = std::async(create_map_row, line, y);
+			//create_map_row(line, y, matched);
+			//if(matched)
+			//	y++;
+
+			if (std::regex_search(line, m, map_regex))
+				y++;
+		}
+		// Wait for asyncs to finish
+		for (auto& e : async_row_building)
+			e.get();
+		
+		map_file.close();
+	}
+	else {
+		std::cerr << "Cannot open the file for the map\n";
+	}
+
+}
+
+/*
+
+void GameMap::loadFromFile(std::string file_name) {
+	std::ifstream map_file("Game\\Maps\\" + file_name + ".txt");
+
+	auto read_width_height = [&, this]() {
+		std::regex params_regex("([A-Za-z ]+):\\s*(\\d+)");
+		std::smatch m;
+
+		std::map <std::string, int> params;
+
+		// 1. Read the first lines -> should contain width and height
+		// 2. Read the map matrix row by row
+		//		2.1. After reading a row initilise data inside the map already
+
+		// Read width and height
+		std::string line;
+		while (std::getline(map_file, line)) {
+			if (std::regex_search(line, m, params_regex)) {
+				params[m[1]] = std::atoi(m[2].str().c_str());
+			}
+
+			if (params["width"] and params["height"])
+				break;
+		}
+
+		this->width = params["width"];
+		this->height = params["height"];
+
+
+		if (height <= 0 or width <= 0) {
+			std::cerr << "Can't find dimensions of the map\n";
+			return;
+		}
+		};
+
 	auto create_tile = [&, this](int x, int y, float val) {
 		sf::Vector3f pos(static_cast<float>(x), static_cast<float>(y), 0);
-		sf::Vector3f dims(1.0f, 1.0f, val);
+		sf::Vector3f dims(1.0f, 1.0f, val*0.5f);
+
 
 		this->ground[y * width + x].init(pos, dims);
 		this->ground[y * width + x].setOutlineColor(sf::Color(0, 255, 0, 255));
-		this->ground[y * height + x].setWallsColor(sf::Color(0, 0, 0, 255));
-		this->ground[y * height + x].setWallsColor(sf::Color(255, 0, 0, 255), 0);
-		this->ground[y * height + x].setWallsColor(sf::Color(0, 0, 255, 255), 1);
-		this->ground[y * height + x].setWallsColor(sf::Color(125, 125, 0, 255), 2);
+		this->ground[y * width + x].setWallsColor(sf::Color(0, 0, 0, 255));
+		this->ground[y * width + x].setWallsColor(sf::Color(255, 0, 0, 255), 0); // ERROR - 15x20 map vector subscript out of range
+		this->ground[y * width + x].setWallsColor(sf::Color(0, 0, 255, 255), 1);
+		this->ground[y * width + x].setWallsColor(sf::Color(125, 125, 0, 255), 2);
+		};
+
+	auto create_map_row = [&, this](std::string row_data, int row_num) {
 
 		};
 
 	if (map_file.is_open()) {
 
-		read_width_height();
+		read_width_height(); // Width and height should be provided at the beginning of the file
 
-		// Read the map matrix row by row and create 
-
+		// Read the map matrix row by row and create the map
 		this->ground.clear();
 		this->ground.resize(width * height);
 
 		std::regex map_regex("\\s*(-?\\d+\\.?\\d*)\\s*"); // Regex for reading rows of the map
+		std::smatch m;
 
 		std::string line;
 		int y = 0, x = 0;
 		bool matched = false;
-		while (std::getline(map_file, line)) {
+
+		// The map matrix should be all together without any blank lines in between.
+		int map_rows_count = 0;
+		//while (std::getline(map_file, line) and map_rows_count < this->height) { // Old
+		while (std::getline(map_file, line) and y < this->height) {
+
+			// Async plan:
+			// 1. Getline
+			// 2. Check if map is divisible by 5 or by 10
+			// 3. If by 10 then divide the width of a row by 10, otherwise by 5
+			// 4. Create n = width / 10 (or 5) strings
+			// 5. Parse each od them with a regex iterator separately and fill the map.
+
+
 			auto heights_begin = std::sregex_iterator(line.begin(), line.end(), map_regex);
 			auto heights_end = std::sregex_iterator();
 
@@ -504,6 +638,8 @@ void GameMap::loadFromFile(std::string file_name) {
 				y++;
 
 			std::cout << line << "\n";
+			map_rows_count++;
+
 		}
 
 		map_file.close();
@@ -514,3 +650,4 @@ void GameMap::loadFromFile(std::string file_name) {
 	}
 
 }
+*/

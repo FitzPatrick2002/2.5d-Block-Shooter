@@ -45,6 +45,6 @@ sf::Text MenuTile::getText() {
 
 void MenuTile::setPos(sf::Vector2f pos) {
 	this->setPosition(pos);
-
+	this->text.setPosition(pos);
 	// Update text position relative to the rectangle
 }

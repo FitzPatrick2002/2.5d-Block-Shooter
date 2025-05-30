@@ -24,7 +24,9 @@ void Bullet::init(sf::Vector3f pos, float angle) {
 
 	std::cout << "angle bullet:" << angle << "\n";
 	this->setVelVersor(sf::Vector3f(v_x, v_y, 0.0f));
-	this->setVelMag(5.0f);
+	
+	//this->setVelMag(5.0f);
+	this->setVelMag(CombatMapData::getCombatMapData().getBulletSpeed());
 
 	sf::Vector3f dims(0.1f, 0.1f, 0.1f);
 	this->bulletModel.init(this->worldPos, dims);
@@ -40,7 +42,8 @@ void Bullet::init(sf::Vector3f pos, sf::Vector2f mousePos) {
 	float new_v_y = 1.41f / 2.0f * (-v_x + v_y);// Manual rotation by 45 degrees, later make a matrix for that.
 
 	this->setVelVersor(sf::Vector3f(new_v_x, new_v_y, 0.0f));
-	this->setVelMag(5.0f);
+	//this->setVelMag(5.0f);
+	this->setVelMag(CombatMapData::getCombatMapData().getBulletSpeed());
 
 	sf::Vector3f dims(0.1f, 0.1f, 0.1f);
 	this->bulletModel.init(this->worldPos, dims);
@@ -52,7 +55,8 @@ void Bullet::init(sf::Vector2f init_pos, sf::Vector2f player_pos) {
 	float v_y = player_pos.y - init_pos.y;
 
 	this->setVelVersor(sf::Vector3f(v_x, v_y, 0.0f));
-	this->setVelMag(5.0f);
+	//this->setVelMag(5.0f);
+	this->setVelMag(CombatMapData::getCombatMapData().getBulletSpeed());
 
 	sf::Vector3f dims(0.1f, 0.1f, 0.1f);
 	this->bulletModel.init(this->worldPos, dims);

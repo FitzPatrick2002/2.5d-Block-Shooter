@@ -25,6 +25,8 @@ MapsMenuList::~MapsMenuList() {
 
 }
 
+
+
 // 1. Check if Game/Maps/ exists
 // 2. Iterate over files, if they are regular files, read their names, czeck extension.
 // 3. If it is txt, then remove it and save the name to the map names vector
@@ -45,7 +47,7 @@ void MapsMenuList::readMapsFromDirectory() {
 
 	}
 	else {
-		std::cerr << "Folder Game is missing, can't read maps, load fonts, nothing\n";
+		std::cerr << "Folder Game\\Maps is missing, can't read maps, load fonts, nothing\n";
 	}
 }
 
