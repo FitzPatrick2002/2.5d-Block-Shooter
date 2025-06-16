@@ -50,43 +50,6 @@ void CreditsMenu::handleUserInput() {
 
 }
 
-/*
-
-void MainMenu::prepareMenuOptions() {
-	this->options.resize(5);
-
-	float rectWidth = float(this->window->getSize().x) / 3.0f;
-	float rectHeight = rectWidth / 7.0f;
-
-	float spaceBetween = rectHeight * 0.8f;
-	float topCoord = (float(this->window->getSize().y) - (spaceBetween * 4.0f + rectHeight * 5.0f))/2.0f;
-
-	std::string tiles_texts[5] = {
-		"Play",
-		"Maps",
-		"Options",
-		"Credits",
-		"Quit"
-	};
-
-	for (int i = 0;  auto & e : this->options) {
-
-		e.setSize(sf::Vector2f(rectWidth, rectHeight));
-		e.setPos(sf::Vector2f(100, topCoord + i*(rectHeight + spaceBetween)));
-		std::cout << topCoord + i * spaceBetween << "\n";
-
-		e.setOutlineThickness(1.0f);
-		e.setOutlineColor(sf::Color(0, 255, 0, 255));
-
-		e.setFillColor(sf::Color::Black);
-
-		e.initText(this->tiles_font, tiles_texts[i]);
-
-		i++;
-	}
-}
-*/
-
 // 1. Read credits file
 // 2. Count number of lines
 // 3. Each line is 20 px

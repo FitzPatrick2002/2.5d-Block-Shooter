@@ -1,27 +1,26 @@
 import MainMenu;
 import GameManager;
-
 import linAlg;
-
 import <iostream>;
 
-// class MenuTile
+// Comments DONE
 
-// class MainMenu
-
+// Constructor
+// 1. Setup the menu tiles
+// 2. Preapre the state, load fonts
 MainMenu::MainMenu(sf::RenderWindow* w) : GameState(w){
 	this->prepareMenuOptions();
 
 	this->menuView.setViewport(sf::FloatRect(0.0f, 0.0f, 1.0f, 1.0f));
 	this->loadFont("Game\\Resources\\Fonts\\Play-Bold");
-
-	std::cout << CombatMapData::getCombatMapData().getMapToLoad() << "\n";
 }
 
 MainMenu::~MainMenu() {
 
 }
 
+// Adjust the view to the window size.
+// It doesn;t really work.
 void MainMenu::resizeView() {
 	sf::Vector2f window_size(static_cast<float>(window->getSize().x), static_cast<float>(window->getSize().y));
 	float window_ratio = window_size.x / window_size.y;
@@ -38,6 +37,7 @@ void MainMenu::resizeView() {
 	this->menuView.setCenter(1024.0f / 2.0f, 768.0f / 2.0f);
 }
 
+// Load the font.
 void MainMenu::loadFont(std::string file_name) {
 
 	if (this->tiles_font.loadFromFile(file_name + ".ttf")) {
@@ -48,15 +48,22 @@ void MainMenu::loadFont(std::string file_name) {
 	}
 }
 
+// Setup the menu options.
+// 1. Get the window properties (width, height) in order to position the tiles relative to the windows size.
+// 2. Prepare texts that will be displayed in the tiles.
+// 3. Iterate over tiels and configure them (set position, color, text, etc.).
+
 void MainMenu::prepareMenuOptions() {
 	this->options.resize(5);
 
+	// 1. Get the window properties (width, height) in order to position the tiles relative to the windows size.
 	float rectWidth = float(this->window->getSize().x) / 3.0f;
 	float rectHeight = rectWidth / 7.0f;
 
 	float spaceBetween = rectHeight * 0.8f;
 	float topCoord = (float(this->window->getSize().y) - (spaceBetween * 4.0f + rectHeight * 5.0f))/2.0f;
 
+	// 2. Prepare texts that will be displayed in the tiles.
 	std::string tiles_texts[5] = {
 		"Play",
 		"Maps",
@@ -65,27 +72,21 @@ void MainMenu::prepareMenuOptions() {
 		"Quit"
 	};
 
+	// 3. Iterate over tiels and configure them (set position, color, text, etc.).
 	for (int i = 0;  auto & e : this->options) {
-		
 		e.setSize(sf::Vector2f(rectWidth, rectHeight));
 		e.setPos(sf::Vector2f(100, topCoord + i*(rectHeight + spaceBetween)));
-		std::cout << topCoord + i * spaceBetween << "\n";
-
 		e.setOutlineThickness(1.0f);
 		e.setOutlineColor(sf::Color(0, 255, 0, 255));
-		
 		e.setFillColor(sf::Color::Black);
-
 		e.initText(this->tiles_font, tiles_texts[i]);
 
 		i++;
 	}
 }
 
-// TO DO: sf::view so that the rectangles do not resize.
-// In the background there will be a blurred printscreen 
-// (moving and then fluently changing to a different one)
-// of the gameplay
+// Handle user input from the mouse and keyboard
+// If any tile is clciked, handle the interaction wit in handleMenuInput();
 void MainMenu::handleUserInput() {
 
 	while (this->window->pollEvent(this->stateEvent)) {
@@ -96,11 +97,6 @@ void MainMenu::handleUserInput() {
 			this->window->close();
 			break;
 		case sf::Event::KeyPressed:
-
-			if (this->stateEvent.key.code == sf::Keyboard::M) {
-				//GameManager::getManager().createNewState(GameStateEnum::Combat, true);
-				return;
-			}
 
 			break;
 		case sf::Event::Resized:
@@ -119,6 +115,10 @@ void MainMenu::handleUserInput() {
 
 }
 
+// Once the tile is clicked, interaction is handled. 
+// Based on which tile was clicked a new state is created. 
+// Order of tiles is fixed. This means that the top tile will always start the combat,
+// second wil lalways be responsible for loading the maps menu, and so on.
 void MainMenu::handleMenuInput() {
 	sf::Vector2f mouse_pos = this->getMousePosition();
 
@@ -144,6 +144,7 @@ void MainMenu::handleMenuInput() {
 
 }
 
+// Returns the mouse position.
 sf::Vector2f MainMenu::getMousePosition() {
 	sf::Vector2i pos = sf::Mouse::getPosition(*this->window);
 	sf::Vector2f mouse_pos = this->window->mapPixelToCoords(pos);
@@ -151,19 +152,17 @@ sf::Vector2f MainMenu::getMousePosition() {
 	return mouse_pos;
 }
 
+// Updates the main menu. 
 void MainMenu::update(sf::Time deltaTime) {
-	//this->window->setView(this->menuView);
-
 	this->render();
-
 	this->handleUserInput();
 }
 
-//void update(); // From polymorphism
+// Render tiles on the screen.
 void MainMenu::render() {
-
 	this->window->clear();
 
+	// Display tiles and text on them.
 	for (auto& e : this->options) {
 		this->window->draw(e);
 		this->window->draw(e.getText());

@@ -11,6 +11,8 @@ import <string>;
 import <future>;
 import <regex>;
 
+// Comments DONE
+
 // IN PROGRESS: 8.
 
 // TO DO:
@@ -52,6 +54,8 @@ import <unordered_set>;
 
 import Enemy;
 import <ranges>;
+
+/*
 
 struct TempMap {
 
@@ -108,8 +112,12 @@ void func(std::vector<int> &vec, std::string line_part, int pos_begin) {
 
 }
 
+*/
+
+
 int main()
 {
+	/*
 	std::vector<int> vec(100);
 
 	auto binded_func = std::bind(func, std::ref(vec), std::placeholders::_1, std::placeholders::_2);
@@ -143,7 +151,8 @@ int main()
 		}
 		std::cout << "\n";
 	}
-
+	
+	*/
 
 	/*
 	Enemy enemy;
@@ -252,6 +261,7 @@ int main()
 
 
 	//std::vector<sf::Vector2i> path = A_starSearch(func, sf::Vector2i(2, 0), sf::Vector2i(2, 8));
+	
 	/*
 	for (auto& e : path)
 		temp_map.arr[e.y][e.x] = '+';
@@ -267,14 +277,17 @@ int main()
 
 		std::cout << "\n";
 	}
+	
 	*/
-
 	
 
+	// Start the thread pool.
 	ThreadPool::accessPool().start();
 
+	// Run the game
 	GameManager::getManager().update();
 
+	// Stop the threads from the threadpool
 	ThreadPool::accessPool().shutdown();
 
     return 0;

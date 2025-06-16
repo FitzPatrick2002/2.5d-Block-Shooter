@@ -9,6 +9,8 @@ import <vector>;
 import <utility>;
 
 // Singleton
+// Threadpool contains a vector of started threads.
+// They are halted until a new task is queued, then one of the threads is notified and takes up the job. Task is removed from the queue.
 
 export class ThreadPool {
 private:

@@ -124,6 +124,11 @@ void Enemy::queueCommand(BasicCommand* command) {
 void Enemy::updatePosition(sf::Time deltaTime) {
 	sf::Vector3f next_position = this->worldPos + this->velMag * deltaTime.asSeconds() * this->velVersor;
 
+	std::cout << "Vel mag = " << this->velMag << "\n";
+	std::cout << "Vel mag = " << this->velMag << "\n";
+	std::cout << "Vel mag = " << this->velMag << "\n";
+	std::cout << "Vel mag = " << this->velMag << "\n";
+
 	this->setWorldPos(next_position);
 	this->model_3d.setWorldPosition(next_position);
 }

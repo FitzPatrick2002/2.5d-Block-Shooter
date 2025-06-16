@@ -7,6 +7,8 @@ import SettingsMenu;
 
 import <iostream>;
 
+// Comments DONE
+
 GameManager::GameManager() {
 
 	this->initGameOnStart();
@@ -17,7 +19,8 @@ GameManager::~GameManager() {
 	delete this->mainWindow;
 }
 
-// TO DO: Make it start with the MainMenu
+// 1. Creates the main window of the game
+// 2. Adds the first state (MainMenu)
 void GameManager::initGameOnStart() {
 
 	this->mainWindow = new sf::RenderWindow(sf::VideoMode(1024, 768), "2.5D Shooter"); //, sf::Style::Default, settings
@@ -27,6 +30,7 @@ void GameManager::initGameOnStart() {
 
 }
 
+// Update measures time elapsed between frames and passes it to the update function of the currently used state.
 void GameManager::update() {
 	
 	while (this->mainWindow->isOpen()) {
@@ -37,6 +41,8 @@ void GameManager::update() {
 	}
 }
 
+// When creating new states it's possible to either destroy the current state (pop the stack) or leave it. 
+// After state is created on the heap, pointer to it is pushed onto the stack.
 void GameManager::createNewState(GameStateEnum st, bool destackCurrent = true) {
 	std::shared_ptr<GameState> temp;
 	if (destackCurrent == true and not this->savedStates.empty()) {

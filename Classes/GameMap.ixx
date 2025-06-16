@@ -2,15 +2,12 @@ export module GameMap;
 
 import Object_3d;
 import MapBox;
-
 import TextureManager;
 import linAlg;
-
 import ThreadPool;
 import Entity;
 
 import <unordered_set>;
-
 import <SFML/Graphics.hpp>;
 import <vector>;
 import <fstream>;
@@ -26,15 +23,9 @@ import <algorithm>;
 // Storing 2d array in a 1d array:
 // [i][j] == [i * height + j]
 
+// GameMap class stores the map, that is used in the Combat state. 
+// It is composed of MapBoxes which are stored in a 1d vector, which we treat as a 2d array.
 
-// Ordering function for displaying the map
-
-struct OrderPairsForDrawing {
-	bool operator() (const sf::Vector2f& pos_1, const sf::Vector2f& pos_2) const {
-		
-		return pos_1.x + pos_1.y < pos_2.x + pos_2.y;
-	}
-};
 
 export class GameMap {
 private:
@@ -45,7 +36,6 @@ private:
 
 	std::vector<MapBox> ground;
 	std::vector<MapBox> groundForDisplay;
-	//std::set<sf::Vector2f, OrderPairsForDrawing> groundForDisplayRayCasting;
 	std::unordered_set<sf::Vector2i, Hashing::V2iHash> ground_to_display_s;
 
 	TextureManager* textureManager;

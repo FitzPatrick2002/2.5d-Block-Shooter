@@ -6,19 +6,20 @@ ThreadPool::ThreadPool() : total_threads_num(std::thread::hardware_concurrency()
 		total_threads_num = 1; // Ensure at least one thread
 	}
 
-	
 }
 
 ThreadPool::~ThreadPool() {
 	shutdown(); // Call shutdown in the destructor
 }
 
+// Thread pool is treated as a singleton 
 ThreadPool& ThreadPool::accessPool() {
 	static ThreadPool pool;
 
 	return pool;
 }
 
+// Start the threadpool. Creates a specified number of threads.
 void ThreadPool::start() {
 	if (!threads.empty()) {
 		// Already started
@@ -30,7 +31,7 @@ void ThreadPool::start() {
 	}
 }
 
-// New shutdown method
+// Shutdown the threadpool
 void ThreadPool::shutdown() {
 	{
 		std::lock_guard<std::mutex> lock(mutex);
@@ -38,6 +39,8 @@ void ThreadPool::shutdown() {
 	}
 	cv.notify_all(); // Notify all threads to wake up and check the shutdown flag
 
+	// Wait till each thread finishes their job.
+	// Join threads to the main thread.
 	for (auto& t : threads) {
 		if (t.joinable()) {
 			t.join();
@@ -46,6 +49,8 @@ void ThreadPool::shutdown() {
 	threads.clear(); // Clear the thread vector after joining
 }
 
+// Function realised by each worker thread.
+// 
 void ThreadPool::worker_thread() {
 	std::unique_lock<std::mutex> lock(mutex);
 
@@ -55,15 +60,15 @@ void ThreadPool::worker_thread() {
 			return shutdown_request || !queue.empty();
 			});
 
-		// Check for shutdown request *after* waking up.
-		// If shutdown is requested AND the queue is empty, exit the thread.
+		// Check for shutdown request after waking up.
+		// If shutdown is requested and the queue is empty, exit the thread.
 		if (shutdown_request && queue.empty()) {
 			break;
 		}
 
 		// If we woke up and there's a task
 		if (!queue.empty()) {
-			busy_threads++; // Increment busy count *after* taking a task
+			busy_threads++; // Increment busy count after taking a task
 			auto func = queue.front();
 			queue.pop();
 
@@ -93,25 +98,29 @@ auto ThreadPool::queueTask(F&& f, Args&&... args) -> std::future<decltype(f(args
 			throw std::runtime_error("queueTask on stopped ThreadPool");
 		}
 		queue.push(wrapper_function);
-	} // Lock is released here
+	} // Lock is released 
 
 	cv.notify_one(); // Notify one waiting thread that a task is available
 
 	return task_ptr->get_future();
 }
 
-bool ThreadPool::anyThreadWorking() const { // Make const as it doesn't modify the object
-	return busy_threads.load() > 0; // Use load() for atomic
+// Tells if any thread is working
+bool ThreadPool::anyThreadWorking() const { 
+	return busy_threads.load() > 0; 
 }
 
-int ThreadPool::getBusyThreads() const { // Make const
-	return busy_threads.load(); // Use load() for atomic
+// Returns number of currently busy threads
+int ThreadPool::getBusyThreads() const { 
+	return busy_threads.load(); 
 }
 
-int ThreadPool::getTotalThreads() const { // Add a method to get total threads
+// Get the total number of threads
+int ThreadPool::getTotalThreads() const { 
 	return total_threads_num;
 }
 
+// Returns number of tasks queued in the queue
 int ThreadPool::getQueueLength() const {
 	return queue.size();
 }

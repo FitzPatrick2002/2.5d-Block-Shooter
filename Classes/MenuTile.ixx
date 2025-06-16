@@ -2,10 +2,15 @@ export module MenuTile;
 
 import <SFML/Graphics.hpp>;
 
+// Comments DONE
+
+// MenuTile is a tile displayed in all menus, like Main menu, maps menu, etc.
+// It is basically a rectangel that contains text.
+// It can check if mouse hovers over it.
+
 export struct MenuTile : public sf::RectangleShape {
 private:
-
-	sf::Text text;
+	sf::Text text; // Text stored by the tile.
 
 public:
 

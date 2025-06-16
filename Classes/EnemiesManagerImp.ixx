@@ -115,7 +115,7 @@ void EnemiesManager::updateEnemy(Enemy& e) {
 			std::vector<sf::Vector2i> path = A_starSearch(isWalkableFunc, enemy_pos, rand_end_pos);
 
 			sf::Vector2f new_vel;
-			float vel_mag = 2.0f;
+			float vel_mag = CombatMapData::getCombatMapData().getEnemySpeed();
 
 			if (e.getWorld_XY() != v2i_to_v2f(path[0])) {
 				new_vel = makeVersor(e.getWorld_XY(), v2i_to_v2f(path[0]));
